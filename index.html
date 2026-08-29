@@ -1,874 +1,3268 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>محفظة أسياسيل الإلكترونية</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&display=swap" rel="stylesheet">
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/12.18.0/firebase-app.js";
-        import { getDatabase, ref, set, get, push, update } from "https://www.gstatic.com/firebasejs/12.18.0/firebase-database.js";
-        import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, sendPasswordResetEmail, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/12.18.0/firebase-auth.js";
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>GOOSIQ WALLET</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;900&display=swap" rel="stylesheet" />
+  <style>
+    /* =========================================================
+       ROOT VARIABLES
+    ========================================================= */
+    :root {
+      --primary: #f5b041;
+      --primary-dark: #e67e22;
+      --secondary: #1a2744;
+      --secondary-light: #2c3e6b;
+      --success: #27ae60;
+      --success-light: #2ecc71;
+      --danger: #e74c3c;
+      --gray: #7f8c9b;
+      --light-bg: #f5f7fb;
+      --white: #ffffff;
+      --shadow: 0 8px 30px rgba(0, 0, 0, 0.12);
+      --shadow-strong: 0 20px 60px rgba(0, 0, 0, 0.25);
+      --radius: 24px;
+      --radius-sm: 16px;
+    }
 
-        const firebaseConfig = {
-            apiKey: "AIzaSyBSo7G18kfFr-Rc48AD-IWk7APqXk33X-o",
-            authDomain: "asaiseel.firebaseapp.com",
-            databaseURL: "https://asaiseel-default-rtdb.firebaseio.com",
-            projectId: "asaiseel",
-            storageBucket: "asaiseel.firebasestorage.app",
-            messagingSenderId: "1044352875279",
-            appId: "1:1044352875279:web:f67a378862d5010d2c5c7a",
-            measurementId: "G-9F2T849TMK"
-        };
+    /* =========================================================
+       RESET & BASE
+    ========================================================= */
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
 
-        const app = initializeApp(firebaseConfig);
-        const database = getDatabase(app);
-        const auth = getAuth(app);
+    body {
+      font-family: 'Tajawal', sans-serif;
+      background: #f0f2f8;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 12px;
+      background: linear-gradient(145deg, #0b1120 0%, #1a2744 100%);
+    }
 
-        let currentUser = null;
-        let currentUserData = null;
-        let dailyRechargeCount = 0;
-        let uploadedImageUrl = '';
-        let currentRequestNumber = '';
+    .app-container {
+      width: 100%;
+      max-width: 420px;
+      height: 95vh;
+      max-height: 800px;
+      background: var(--white);
+      border-radius: 32px;
+      box-shadow: var(--shadow-strong);
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      position: relative;
+    }
 
-        const MIN_AMOUNT = 10000;
-        const MAX_RECHARGE_AMOUNT = 60000;
+    /* =========================================================
+       AUTH SECTION
+    ========================================================= */
+    #authSection {
+      padding: 30px 24px 20px;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
+    }
 
-        // ============ Notification System ============
-        function showNotification(message, type = 'success', title = '') {
-            const notificationContainer = document.getElementById('notificationContainer');
-            const icons = { success: '✓', error: '✗', warning: '⚠', info: 'ℹ' };
-            const colors = {
-                success: 'from-green-500 to-emerald-600',
-                error: 'from-red-500 to-rose-600',
-                warning: 'from-yellow-500 to-amber-600',
-                info: 'from-blue-500 to-indigo-600'
-            };
-            const titles = { success: title || 'نجاح', error: title || 'خطأ', warning: title || 'تنبيه', info: title || 'معلومة' };
-            
-            const overlay = document.createElement('div');
-            overlay.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[9999]';
-            const notification = document.createElement('div');
-            notification.className = 'notification-animate bg-gradient-to-r ' + colors[type] + ' text-white rounded-2xl shadow-2xl p-8 max-w-md w-full mx-4';
-            notification.innerHTML = `
-                <div class="text-center">
-                    <div class="w-20 h-20 bg-white bg-opacity-25 rounded-full flex items-center justify-center mx-auto mb-4 text-4xl font-bold">${icons[type]}</div>
-                    <h3 class="text-2xl font-bold mb-2">${titles[type]}</h3>
-                    <p class="text-lg">${message}</p>
-                    <button onclick="this.closest('.fixed').remove()" class="mt-6 bg-white text-gray-800 px-8 py-3 rounded-lg font-bold">حسناً</button>
-                </div>
-            `;
-            overlay.appendChild(notification);
-            notificationContainer.appendChild(overlay);
-            setTimeout(() => overlay.remove(), 4000);
-        }
+    .auth-header {
+      text-align: center;
+      margin-bottom: 28px;
+    }
 
-        // ============ Confirmation Dialog ============
-        function showConfirmDialog(message, title = 'تأكيد', confirmText = 'تأكيد', cancelText = 'إلغاء') {
-            return new Promise((resolve) => {
-                const dialogContainer = document.getElementById('dialogContainer');
-                const overlay = document.createElement('div');
-                overlay.className = 'fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-[10000]';
-                const dialog = document.createElement('div');
-                dialog.className = 'bg-white rounded-2xl shadow-2xl p-8 max-w-md w-full mx-4';
-                dialog.innerHTML = `
-                    <div class="text-center mb-6">
-                        <div class="w-20 h-20 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center mx-auto mb-4"><span class="text-4xl">❓</span></div>
-                        <h3 class="text-2xl font-bold mb-2">${title}</h3>
-                        <p class="text-gray-600 text-lg">${message}</p>
-                    </div>
-                    <div class="flex justify-center gap-4">
-                        <button id="confirmBtn" class="bg-gradient-to-r from-blue-500 to-purple-600 text-white px-8 py-3 rounded-lg font-bold">${confirmText}</button>
-                        <button id="cancelBtn" class="bg-gray-200 text-gray-700 px-8 py-3 rounded-lg font-bold">${cancelText}</button>
-                    </div>
-                `;
-                overlay.appendChild(dialog);
-                dialogContainer.appendChild(overlay);
-                dialog.querySelector('#confirmBtn').addEventListener('click', () => { overlay.remove(); resolve(true); });
-                dialog.querySelector('#cancelBtn').addEventListener('click', () => { overlay.remove(); resolve(false); });
-            });
-        }
+    .auth-header .logo-icon {
+      font-size: 48px;
+      color: var(--primary);
+      background: rgba(245, 176, 65, 0.10);
+      width: 80px;
+      height: 80px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 12px;
+      border: 2px solid rgba(245, 176, 65, 0.25);
+      transition: 0.4s;
+    }
 
-        // ============ Image Viewer ============
-        window.showImageViewer = function(imageUrl) {
-            const existing = document.getElementById('imageViewerOverlay');
-            if (existing) existing.remove();
-            const overlay = document.createElement('div');
-            overlay.id = 'imageViewerOverlay';
-            overlay.className = 'fixed inset-0 bg-black bg-opacity-90 flex items-center justify-center z-[10001]';
-            const viewer = document.createElement('div');
-            viewer.className = 'bg-white rounded-2xl p-4 max-w-4xl w-full mx-4';
-            viewer.innerHTML = `
-                <div class="flex justify-between items-center mb-4">
-                    <h3 class="text-2xl font-bold">📷 صورة التحويل</h3>
-                    <button onclick="document.getElementById('imageViewerOverlay').remove()" class="text-gray-500 text-2xl">✕</button>
-                </div>
-                <img src="${imageUrl}" class="max-w-full max-h-[70vh] rounded-lg">
-            `;
-            overlay.appendChild(viewer);
-            document.body.appendChild(overlay);
-            overlay.addEventListener('click', (e) => { if (e.target === overlay) overlay.remove(); });
-        };
+    .auth-header .logo-icon:hover {
+      transform: scale(1.05);
+      box-shadow: 0 0 30px rgba(245, 176, 65, 0.15);
+    }
 
-        // ============ Show Profile Info ============
-        window.showProfileInfo = function() {
-            if (!currentUserData) return;
-            
-            const existing = document.getElementById('profileInfoOverlay');
-            if (existing) existing.remove();
-            
-            const overlay = document.createElement('div');
-            overlay.id = 'profileInfoOverlay';
-            overlay.className = 'fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-[10000]';
-            
-            const dialog = document.createElement('div');
-            dialog.className = 'bg-white rounded-2xl shadow-2xl p-8 max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto';
-            dialog.innerHTML = `
-                <div class="flex justify-between items-center mb-6">
-                    <h3 class="text-2xl font-bold">👤 معلومات الحساب</h3>
-                    <button onclick="document.getElementById('profileInfoOverlay').remove()" class="text-gray-500 text-2xl">✕</button>
-                </div>
-                <div class="grid grid-cols-2 gap-4">
-                    <div class="bg-blue-50 p-4 rounded-lg"><p class="text-sm text-gray-600">الاسم</p><p class="font-bold">${currentUserData.fullName}</p></div>
-                    <div class="bg-blue-50 p-4 rounded-lg"><p class="text-sm text-gray-600">اسم المستخدم</p><p class="font-bold">@${currentUserData.username}</p></div>
-                    <div class="bg-blue-50 p-4 rounded-lg"><p class="text-sm text-gray-600">رقم الهاتف</p><p class="font-bold">${currentUserData.phoneNumber}</p></div>
-                    <div class="bg-blue-50 p-4 rounded-lg"><p class="text-sm text-gray-600">البريد</p><p class="font-bold">${currentUserData.email}</p></div>
-                    <div class="bg-green-50 p-4 rounded-lg"><p class="text-sm text-gray-600">الرصيد</p><p class="font-bold text-green-600">${currentUserData.balance.toLocaleString('ar-IQ')} د.ع</p></div>
-                    <div class="bg-gray-50 p-4 rounded-lg"><p class="text-sm text-gray-600">تاريخ التسجيل</p><p class="font-bold">${new Date(currentUserData.createdAt).toLocaleString('ar-IQ')}</p></div>
-                    ${currentUserData.profileCompleted ? `
-                        <div class="bg-purple-50 p-4 rounded-lg"><p class="text-sm text-gray-600">اسم حساب الرافدين</p><p class="font-bold">${currentUserData.profile.rafidainCardName}</p></div>
-                        <div class="bg-purple-50 p-4 rounded-lg"><p class="text-sm text-gray-600">رقم حساب الرافدين</p><p class="font-bold">${currentUserData.profile.rafidainAccountNumber}</p></div>
-                    ` : ''}
-                </div>
-                <button onclick="document.getElementById('profileInfoOverlay').remove()" class="mt-6 w-full bg-gray-200 py-3 rounded-lg font-bold">إغلاق</button>
-            `;
-            overlay.appendChild(dialog);
-            document.body.appendChild(overlay);
-        };
+    .auth-header h1 {
+      font-size: 28px;
+      font-weight: 900;
+      color: var(--secondary);
+      letter-spacing: 0.5px;
+    }
 
-        // ============ Generate Request Number ============
-        async function generateRequestNumber() {
-            const transactionsRef = ref(database, 'transactions');
-            const snapshot = await get(transactionsRef);
-            let maxNumber = 0;
-            if (snapshot.exists()) {
-                const transactions = snapshot.val();
-                for (let key in transactions) {
-                    if (transactions[key].requestNumber) {
-                        const num = parseInt(transactions[key].requestNumber);
-                        if (num > maxNumber) maxNumber = num;
-                    }
-                }
-            }
-            currentRequestNumber = (maxNumber + 1).toString().padStart(6, '0');
-            return currentRequestNumber;
-        }
+    .auth-header h1 span {
+      color: var(--primary);
+    }
 
-        // ============ Navigation ============
-        window.showLogin = function() {
-            document.getElementById('authSection').style.display = 'flex';
-            document.getElementById('mainSection').style.display = 'none';
-            document.getElementById('loginForm').style.display = 'block';
-            document.getElementById('signupForm').style.display = 'none';
-            document.getElementById('resetPasswordForm').style.display = 'none';
-            clearErrors();
-        }
+    .auth-header p {
+      color: var(--gray);
+      font-size: 14px;
+      margin-top: 4px;
+    }
 
-        window.showSignup = function() {
-            document.getElementById('loginForm').style.display = 'none';
-            document.getElementById('signupForm').style.display = 'block';
-            document.getElementById('resetPasswordForm').style.display = 'none';
-            clearErrors();
-        }
+    /* ===== FORM ===== */
+    .form-group {
+      margin-bottom: 16px;
+    }
 
-        window.showResetPassword = function() {
-            document.getElementById('loginForm').style.display = 'none';
-            document.getElementById('signupForm').style.display = 'none';
-            document.getElementById('resetPasswordForm').style.display = 'block';
-            clearErrors();
-        }
+    .form-group label {
+      display: block;
+      font-weight: 700;
+      font-size: 14px;
+      color: var(--secondary);
+      margin-bottom: 5px;
+    }
 
-        function clearErrors() {
-            document.querySelectorAll('.error-message').forEach(el => { el.textContent = ''; el.style.display = 'none'; });
-        }
+    .form-group input,
+    .form-group textarea,
+    .form-group select {
+      width: 100%;
+      padding: 12px 16px;
+      border: 2px solid #e2e6ee;
+      border-radius: var(--radius-sm);
+      font-size: 15px;
+      font-family: 'Tajawal', sans-serif;
+      transition: 0.3s;
+      background: #f8f9fc;
+    }
 
-        function showError(elementId, message) {
-            const el = document.getElementById(elementId);
-            if (el) { el.textContent = message; el.style.display = 'block'; }
-        }
+    .form-group input:focus,
+    .form-group textarea:focus,
+    .form-group select:focus {
+      border-color: var(--primary);
+      outline: none;
+      box-shadow: 0 0 0 4px rgba(245, 176, 65, 0.12);
+      background: var(--white);
+    }
 
-        function isEmail(input) {
-            return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(input);
-        }
+    .form-group input.error,
+    .form-group textarea.error {
+      border-color: var(--danger);
+      box-shadow: 0 0 0 4px rgba(231, 76, 60, 0.10);
+    }
 
-        // ============ Signup ============
-        window.signup = async function() {
-            const fullName = document.getElementById('signupFullName').value.trim();
-            const phoneNumber = document.getElementById('signupPhone').value.trim();
-            const username = document.getElementById('signupUsername').value.trim().toLowerCase();
-            const email = document.getElementById('signupEmail').value.trim().toLowerCase();
-            const password = document.getElementById('signupPassword').value;
+    .signup-fields {
+      display: none;
+    }
+    .signup-fields.visible {
+      display: block;
+    }
 
-            clearErrors();
-            
-            if (fullName.trim().split(/\s+/).length < 3) { showError('signupFullNameError', 'يجب إدخال الاسم الثلاثي'); return; }
-            if (!/^077\d{8}$/.test(phoneNumber)) { showError('signupPhoneError', 'رقم الهاتف يجب أن يبدأ بـ 077 ويتكون من 11 رقم'); return; }
-            if (!/^[a-zA-Z0-9_]{3,20}$/.test(username)) { showError('signupUsernameError', 'اسم المستخدم 3-20 حرف'); return; }
-            if (!isEmail(email)) { showError('signupEmailError', 'بريد إلكتروني غير صحيح'); return; }
-            if (password.length < 6) { showError('signupPasswordError', 'كلمة المرور 6 أحرف على الأقل'); return; }
-            
-            try {
-                const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-                const user = userCredential.user;
-                
-                await set(ref(database, 'users/' + user.uid), {
-                    uid: user.uid,
-                    fullName, phoneNumber, username, email,
-                    balance: 0, isBlocked: false, profileCompleted: false,
-                    profile: { fullName, phoneNumber, rafidainCardName: '', rafidainAccountNumber: '' },
-                    createdAt: new Date().toISOString()
-                });
-                
-                showNotification('تم إنشاء الحساب بنجاح!', 'success');
-                setTimeout(() => showLogin(), 1500);
-            } catch (error) {
-                if (error.code === 'auth/email-already-in-use') showError('signupEmailError', 'البريد مسجل مسبقاً');
-                else showNotification('خطأ: ' + error.message, 'error');
-            }
-        }
+    .btn-primary {
+      width: 100%;
+      padding: 14px;
+      border: none;
+      border-radius: var(--radius-sm);
+      font-size: 18px;
+      font-weight: 700;
+      background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+      color: #fff;
+      cursor: pointer;
+      transition: 0.3s;
+      margin-top: 8px;
+      box-shadow: 0 6px 20px rgba(245, 176, 65, 0.30);
+    }
 
-        // ============ Login (FIXED - No Database Read) ============
-        window.login = async function() {
-            const loginInput = document.getElementById('loginInput').value.trim().toLowerCase();
-            const password = document.getElementById('loginPassword').value;
+    .btn-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 10px 28px rgba(245, 176, 65, 0.40);
+    }
 
-            clearErrors();
-            
-            if (!loginInput) { showError('loginInputError', 'أدخل البريد أو اسم المستخدم'); return; }
-            if (!password) { showError('loginPasswordError', 'أدخل كلمة المرور'); return; }
+    .btn-primary:active {
+      transform: scale(0.97);
+    }
 
-            // إذا كان اسم مستخدم، اشتق البريد منه مباشرة
-            let email = loginInput;
-            if (!isEmail(loginInput)) {
-                email = loginInput + "@asiaseel.com";
-            }
+    .btn-primary:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+      transform: none;
+    }
 
-            try {
-                const userCredential = await signInWithEmailAndPassword(auth, email, password);
-                const user = userCredential.user;
-                
-                const userRef = ref(database, 'users/' + user.uid);
-                const snapshot = await get(userRef);
-                
-                if (snapshot.exists() && snapshot.val().isBlocked) {
-                    showNotification('تم حظر حسابك', 'error');
-                    await signOut(auth);
-                    return;
-                }
+    .toggle-link {
+      text-align: center;
+      margin-top: 16px;
+      color: var(--gray);
+      font-size: 15px;
+    }
 
-                currentUser = user;
-                await loadUserData();
-                showMainSection();
-                showNotification('تم تسجيل الدخول بنجاح', 'success', 'مرحباً');
-            } catch (error) {
-                if (error.code === 'auth/user-not-found' || error.code === 'auth/wrong-password') {
-                    showError('loginPasswordError', 'بيانات الدخول غير صحيحة');
-                } else if (error.code === 'auth/invalid-email') {
-                    showError('loginInputError', 'بريد إلكتروني غير صحيح');
-                } else {
-                    showNotification('خطأ: ' + error.message, 'error');
-                }
-            }
-        }
+    .toggle-link span {
+      color: var(--primary);
+      font-weight: 700;
+      cursor: pointer;
+      transition: 0.2s;
+    }
 
-        // ============ Reset Password ============
-        window.resetPassword = async function() {
-            const email = document.getElementById('resetEmail').value.trim().toLowerCase();
-            if (!email || !isEmail(email)) { showError('resetEmailError', 'بريد إلكتروني غير صحيح'); return; }
-            try {
-                await sendPasswordResetEmail(auth, email);
-                showNotification('تم إرسال رابط إعادة التعيين', 'success');
-            } catch (error) {
-                showError('resetEmailError', 'البريد غير مسجل');
-            }
-        }
+    .toggle-link span:hover {
+      text-decoration: underline;
+    }
 
-        // ============ Logout ============
-        window.logout = async function() {
-            await signOut(auth);
-            currentUser = null;
-            currentUserData = null;
-            showLogin();
-        }
+    /* =========================================================
+       TOAST
+    ========================================================= */
+    .toast-container {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      z-index: 9999;
+      pointer-events: none;
+      width: 90%;
+      max-width: 400px;
+    }
 
-        // ============ Load User Data ============
-        async function loadUserData() {
-            const userRef = ref(database, 'users/' + currentUser.uid);
-            const snapshot = await get(userRef);
-            if (snapshot.exists()) {
-                currentUserData = snapshot.val();
-                document.getElementById('userBalance').textContent = currentUserData.balance.toLocaleString('ar-IQ') + ' د.ع';
-                document.getElementById('welcomeMessage').textContent = 'مرحباً ' + currentUserData.fullName;
-                await checkDailyRechargeCount();
-                await loadTransactions();
-                await loadStatistics();
-            }
-        }
+    .toast {
+      background: var(--danger);
+      color: #fff;
+      padding: 18px 24px;
+      border-radius: var(--radius-sm);
+      font-size: 17px;
+      font-weight: 700;
+      text-align: center;
+      pointer-events: auto;
+      animation: slideDown 0.4s ease-out forwards;
+      box-shadow: var(--shadow-strong);
+      border-right: 6px solid #c0392b;
+      position: relative;
+    }
 
-        // ============ Check Daily Count ============
-        async function checkDailyRechargeCount() {
-            const today = new Date().toISOString().split('T')[0];
-            const transactionsRef = ref(database, 'transactions');
-            const snapshot = await get(transactionsRef);
-            dailyRechargeCount = 0;
-            if (snapshot.exists()) {
-                const transactions = snapshot.val();
-                for (let key in transactions) {
-                    const t = transactions[key];
-                    if (t.userId === currentUser.uid && t.type === 'recharge' && t.date.startsWith(today) && t.status !== 'cancelled') {
-                        dailyRechargeCount++;
-                    }
-                }
-            }
-            document.getElementById('dailyRechargeCount').textContent = dailyRechargeCount + ' / 5';
-        }
+    .toast.success {
+      background: var(--success);
+      border-right-color: #1e8449;
+    }
 
-        // ============ Show Recharge Modal ============
-        window.showRechargeModal = async function() {
-            if (dailyRechargeCount >= 5) { showNotification('الحد الأقصى 5 عمليات يومياً', 'warning'); return; }
-            await generateRequestNumber();
-            document.getElementById('rechargeModal').style.display = 'block';
-            document.getElementById('rechargePhone').value = currentUserData.phoneNumber;
-            document.getElementById('rechargeRequestNumber').value = currentRequestNumber;
-            document.getElementById('rechargeAmount').value = '';
-            document.getElementById('finalAmount').value = '';
-            document.getElementById('finalAmountDisplay').textContent = '';
-            document.getElementById('transferCode').textContent = '';
-            document.getElementById('transferCodeContainer').style.display = 'none';
-            document.getElementById('imagePreview').style.display = 'none';
-            document.getElementById('uploadStatus').textContent = '';
-            uploadedImageUrl = '';
-        }
+    .toast .close-toast {
+      position: absolute;
+      top: 4px;
+      left: 16px;
+      font-size: 22px;
+      cursor: pointer;
+      opacity: 0.7;
+      transition: 0.3s;
+    }
 
-        // ============ Calculate Final Amount ============
-        window.calculateFinalAmount = function() {
-            let amount = parseFloat(document.getElementById('rechargeAmount').value);
-            const errorEl = document.getElementById('rechargeAmountError');
-            
-            if (amount > MAX_RECHARGE_AMOUNT) {
-                errorEl.textContent = `الحد الأقصى ${MAX_RECHARGE_AMOUNT.toLocaleString('ar-IQ')} د.ع`;
-                errorEl.style.display = 'block';
-                amount = MAX_RECHARGE_AMOUNT;
-                document.getElementById('rechargeAmount').value = amount;
-            } else if (amount < MIN_AMOUNT && amount > 0) {
-                errorEl.textContent = `الحد الأدنى ${MIN_AMOUNT.toLocaleString('ar-IQ')} د.ع`;
-                errorEl.style.display = 'block';
-            } else {
-                errorEl.style.display = 'none';
-            }
-            
-            if (amount >= MIN_AMOUNT) {
-                const finalAmount = amount * 0.825;
-                document.getElementById('finalAmount').value = finalAmount.toFixed(2) + ' د.ع';
-                document.getElementById('finalAmountDisplay').textContent = 'المبلغ المستحق: ' + finalAmount.toFixed(2) + ' د.ع';
-                document.getElementById('transferCode').textContent = `*123*${amount}*07732773761#`;
-                document.getElementById('transferCodeContainer').style.display = 'block';
-            }
-        }
+    .toast .close-toast:hover {
+      opacity: 1;
+    }
 
-        // ============ Copy Transfer Code ============
-        window.copyTransferCode = function() {
-            const code = document.getElementById('transferCode').textContent;
-            navigator.clipboard.writeText(code).then(() => {
-                showNotification('تم نسخ كود التحويل', 'success');
-            });
-        }
+    @keyframes slideDown {
+      from {
+        opacity: 0;
+        transform: translateY(-40px) scale(0.92);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+      }
+    }
 
-        // ============ Handle Image Upload ============
-        window.handleImageUpload = async function(event) {
-            const file = event.target.files[0];
-            if (!file) return;
-            if (!file.type.startsWith('image/')) { showNotification('يرجى اختيار صورة', 'error'); return; }
-            
-            try {
-                document.getElementById('uploadStatus').textContent = '⏳ جاري رفع الصورة...';
-                const compressed = await compressImage(file);
-                const formData = new FormData();
-                formData.append('file', compressed, compressed.name);
-                
-                const response = await fetch('https://misty-math-b171.mojtabakareem77.workers.dev/upload', {
-                    method: 'POST', body: formData
-                });
-                
-                const result = await response.json();
-                if (result.success && result.url) {
-                    uploadedImageUrl = result.url;
-                    document.getElementById('imagePreview').src = URL.createObjectURL(compressed);
-                    document.getElementById('imagePreview').style.display = 'block';
-                    document.getElementById('uploadStatus').textContent = '✓ تم رفع الصورة';
-                    document.getElementById('uploadStatus').className = 'text-green-600 text-sm';
-                }
-            } catch (error) {
-                document.getElementById('uploadStatus').textContent = '❌ خطأ في الرفع';
-            }
-        }
+    /* =========================================================
+       APP MAIN
+    ========================================================= */
+    .app-main {
+      flex: 1;
+      display: none;
+      flex-direction: column;
+      background: var(--light-bg);
+      height: 100%;
+      overflow: hidden;
+    }
 
-        // ============ Compress Image ============
-        async function compressImage(file) {
-            return new Promise((resolve, reject) => {
-                const reader = new FileReader();
-                reader.onload = function(e) {
-                    const img = new Image();
-                    img.onload = function() {
-                        const canvas = document.createElement('canvas');
-                        let w = img.width, h = img.height;
-                        const maxDim = 600;
-                        if (w > maxDim || h > maxDim) {
-                            if (w > h) { h = h * maxDim / w; w = maxDim; }
-                            else { w = w * maxDim / h; h = maxDim; }
-                        }
-                        canvas.width = w; canvas.height = h;
-                        canvas.getContext('2d').drawImage(img, 0, 0, w, h);
-                        let quality = 0.3;
-                        let dataUrl = canvas.toDataURL('image/jpeg', quality);
-                        while (dataUrl.length * 0.75 / 1024 > 30 && quality > 0.05) {
-                            quality -= 0.05;
-                            dataUrl = canvas.toDataURL('image/jpeg', quality);
-                        }
-                        const parts = dataUrl.split(';base64,');
-                        const raw = atob(parts[1]);
-                        const bytes = new Uint8Array(raw.length);
-                        for (let i = 0; i < raw.length; i++) bytes[i] = raw.charCodeAt(i);
-                        resolve(new File([bytes], 'compressed.jpg', { type: 'image/jpeg' }));
-                    };
-                    img.src = e.target.result;
-                };
-                reader.readAsDataURL(file);
-            });
-        }
+    .app-main.active {
+      display: flex;
+    }
 
-        // ============ Submit Recharge ============
-        window.submitRecharge = async function() {
-            const amount = parseFloat(document.getElementById('rechargeAmount').value);
-            const finalAmount = parseFloat(document.getElementById('finalAmount').value.replace(' د.ع', ''));
-            const requestNumber = document.getElementById('rechargeRequestNumber').value;
-            
-            if (!amount || amount < MIN_AMOUNT) { showNotification(`الحد الأدنى ${MIN_AMOUNT.toLocaleString('ar-IQ')} د.ع`, 'warning'); return; }
-            if (!uploadedImageUrl) { showNotification('يرجى رفع صورة التحويل', 'warning'); return; }
-            
-            const confirmed = await showConfirmDialog(`سيتم تحويل ${amount.toLocaleString('ar-IQ')} د.ع وإضافة ${finalAmount.toLocaleString('ar-IQ')} د.ع`, 'تأكيد التعبئة');
-            if (!confirmed) return;
-            
-            try {
-                await push(ref(database, 'transactions'), {
-                    userId: currentUser.uid, type: 'recharge', amount, finalAmount,
-                    transferImage: uploadedImageUrl, transferFromPhone: currentUserData.phoneNumber,
-                    transferToAccount: '07732773761', status: 'pending',
-                    date: new Date().toISOString(), username: currentUserData.username,
-                    fullName: currentUserData.fullName, requestNumber
-                });
-                document.getElementById('rechargeModal').style.display = 'none';
-                showNotification(`تم إرسال طلبك! رقم الطلب: ${requestNumber}`, 'success');
-                await loadTransactions();
-                await checkDailyRechargeCount();
-            } catch (error) {
-                showNotification('خطأ: ' + error.message, 'error');
-            }
-        }
+    .app-header {
+      background: linear-gradient(135deg, var(--secondary), var(--secondary-light));
+      padding: 20px 24px 16px;
+      border-bottom-left-radius: 28px;
+      border-bottom-right-radius: 28px;
+      color: #fff;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      box-shadow: 0 6px 20px rgba(26, 39, 68, 0.25);
+      flex-shrink: 0;
+    }
 
-        // ============ Show Withdrawal Modal ============
-        window.showWithdrawalModal = async function() {
-            if (!currentUserData.profileCompleted) {
-                showNotification('يرجى إكمال بيانات مصرف الرافدين أولاً', 'warning');
-                showRafidainModal();
-                return;
-            }
-            
-            await generateRequestNumber();
-            document.getElementById('withdrawalModal').style.display = 'block';
-            document.getElementById('withdrawalRequestNumber').value = currentRequestNumber;
-            document.getElementById('withdrawalAmount').value = '';
-            document.getElementById('withdrawalFinalAmount').value = '';
-            document.getElementById('rafidainCardNameDisplay').textContent = currentUserData.profile.rafidainCardName;
-            document.getElementById('rafidainAccountDisplay').textContent = currentUserData.profile.rafidainAccountNumber;
-        }
+    .app-header .brand {
+      font-size: 18px;
+      font-weight: 900;
+      letter-spacing: 0.5px;
+    }
 
-        // ============ Show Rafidain Modal ============
-        window.showRafidainModal = function() {
-            document.getElementById('rafidainModal').style.display = 'block';
-        }
+    .app-header .brand span {
+      color: var(--primary);
+    }
 
-        // ============ Save Rafidain Info ============
-        window.saveRafidainInfo = async function() {
-            const cardName = document.getElementById('rafidainCardName').value.trim();
-            const accountNumber = document.getElementById('rafidainAccountNumber').value.trim();
-            
-            if (!cardName) { showNotification('يرجى إدخال اسم حساب مصرف الرافدين', 'warning'); return; }
-            if (!/^\d{10}$/.test(accountNumber)) { showNotification('رقم الحساب يجب أن يكون 10 أرقام', 'warning'); return; }
-            
-            try {
-                await update(ref(database, 'users/' + currentUser.uid), {
-                    profile: {
-                        fullName: currentUserData.fullName,
-                        phoneNumber: currentUserData.phoneNumber,
-                        rafidainCardName: cardName,
-                        rafidainAccountNumber: accountNumber
-                    },
-                    profileCompleted: true
-                });
-                
-                currentUserData.profile = { fullName: currentUserData.fullName, phoneNumber: currentUserData.phoneNumber, rafidainCardName: cardName, rafidainAccountNumber: accountNumber };
-                currentUserData.profileCompleted = true;
-                
-                document.getElementById('rafidainModal').style.display = 'none';
-                showNotification('تم حفظ بيانات مصرف الرافدين', 'success');
-            } catch (error) {
-                showNotification('خطأ: ' + error.message, 'error');
-            }
-        }
+    .app-header .user-badge {
+      background: rgba(255, 255, 255, 0.12);
+      padding: 6px 14px;
+      border-radius: 30px;
+      font-size: 13px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      backdrop-filter: blur(4px);
+    }
 
-        // ============ Calculate Withdrawal ============
-        window.calculateWithdrawalAmount = function() {
-            let amount = parseFloat(document.getElementById('withdrawalAmount').value);
-            const errorEl = document.getElementById('withdrawalAmountError');
-            
-            if (amount < MIN_AMOUNT && amount > 0) {
-                errorEl.textContent = `الحد الأدنى ${MIN_AMOUNT.toLocaleString('ar-IQ')} د.ع`;
-                errorEl.style.display = 'block';
-            } else {
-                errorEl.style.display = 'none';
-            }
-            
-            if (amount > currentUserData.balance) {
-                showNotification('الرصيد غير كافي', 'warning');
-                amount = currentUserData.balance;
-                document.getElementById('withdrawalAmount').value = amount;
-            }
-            
-            if (amount >= MIN_AMOUNT) {
-                const fee = amount * 0.005;
-                document.getElementById('withdrawalFinalAmount').value = (amount - fee).toFixed(2) + ' د.ع';
-            }
-        }
+    .app-header .user-badge i {
+      font-size: 16px;
+      color: var(--primary);
+    }
 
-        // ============ Submit Withdrawal ============
-        window.submitWithdrawal = async function() {
-            const amount = parseFloat(document.getElementById('withdrawalAmount').value);
-            const finalAmount = parseFloat(document.getElementById('withdrawalFinalAmount').value.replace(' د.ع', ''));
-            const requestNumber = document.getElementById('withdrawalRequestNumber').value;
-            
-            if (!amount || amount < MIN_AMOUNT) { showNotification(`الحد الأدنى ${MIN_AMOUNT.toLocaleString('ar-IQ')} د.ع`, 'warning'); return; }
-            if (amount > currentUserData.balance) { showNotification('الرصيد غير كافي', 'warning'); return; }
-            
-            const confirmed = await showConfirmDialog(`سيتم سحب ${amount.toLocaleString('ar-IQ')} د.ع وستصلك ${finalAmount.toLocaleString('ar-IQ')} د.ع`, 'تأكيد السحب');
-            if (!confirmed) return;
-            
-            try {
-                await push(ref(database, 'transactions'), {
-                    userId: currentUser.uid, type: 'withdrawal', amount, finalAmount,
-                    rafidainCardName: currentUserData.profile.rafidainCardName,
-                    rafidainAccountNumber: currentUserData.profile.rafidainAccountNumber,
-                    status: 'pending', date: new Date().toISOString(),
-                    username: currentUserData.username, fullName: currentUserData.fullName, requestNumber
-                });
-                document.getElementById('withdrawalModal').style.display = 'none';
-                showNotification(`تم إرسال طلبك! رقم الطلب: ${requestNumber}`, 'success');
-                await loadTransactions();
-            } catch (error) {
-                showNotification('خطأ: ' + error.message, 'error');
-            }
-        }
+    /* ===== PAGE CONTENT (SCROLLABLE) ===== */
+    .page-content {
+      flex: 1;
+      padding: 20px 20px 80px;
+      overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
+      scroll-behavior: smooth;
+      overscroll-behavior: contain;
+    }
 
-        // ============ Load Transactions ============
-        async function loadTransactions() {
-            const transactionsRef = ref(database, 'transactions');
-            const snapshot = await get(transactionsRef);
-            const list = document.getElementById('transactionsList');
-            list.innerHTML = '';
-            
-            if (snapshot.exists()) {
-                const transactions = snapshot.val();
-                const userTxns = [];
-                for (let key in transactions) {
-                    if (transactions[key].userId === currentUser.uid) {
-                        userTxns.push({ id: key, ...transactions[key] });
-                    }
-                }
-                userTxns.sort((a, b) => new Date(b.date) - new Date(a.date));
-                
-                for (let t of userTxns) {
-                    const statusColor = t.status === 'pending' ? 'bg-yellow-100 text-yellow-800' : t.status === 'completed' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800';
-                    const statusText = t.status === 'pending' ? 'قيد التدقيق' : t.status === 'completed' ? 'مكتملة' : 'ملغي';
-                    
-                    list.innerHTML += `
-                        <div class="bg-white p-4 rounded-lg shadow">
-                            <div class="flex justify-between">
-                                <div>
-                                    <p class="font-bold">${t.type === 'recharge' ? '💰 تعبئة' : '💸 سحب'}</p>
-                                    <p class="text-xs text-gray-500">رقم الطلب: ${t.requestNumber || 'غير متوفر'}</p>
-                                    <p class="text-sm text-green-600 font-bold">المبلغ المستحق: ${t.finalAmount.toLocaleString('ar-IQ')} د.ع</p>
-                                    <p class="text-xs text-gray-400">${new Date(t.date).toLocaleString('ar-IQ')}</p>
-                                </div>
-                                <div>
-                                    <span class="px-3 py-1 rounded-full text-xs ${statusColor}">${statusText}</span>
-                                    ${t.type === 'recharge' && t.transferImage ? `<button onclick="showImageViewer('${t.transferImage}')" class="block mt-2 text-blue-500 text-xs">📷 عرض</button>` : ''}
-                                </div>
-                            </div>
-                        </div>
-                    `;
-                }
-            } else {
-                list.innerHTML = '<p class="text-center text-gray-600">لا توجد عمليات</p>';
-            }
-        }
+    .page {
+      display: none;
+      animation: fadeUp 0.4s ease;
+      padding-bottom: 20px;
+    }
 
-        // ============ Load Statistics ============
-        async function loadStatistics() {
-            const transactionsRef = ref(database, 'transactions');
-            const snapshot = await get(transactionsRef);
-            let totalRecharge = 0, totalWithdrawal = 0, pending = 0, completed = 0;
-            
-            if (snapshot.exists()) {
-                const transactions = snapshot.val();
-                for (let key in transactions) {
-                    const t = transactions[key];
-                    if (t.userId === currentUser.uid) {
-                        if (t.status === 'completed') {
-                            if (t.type === 'recharge') totalRecharge += t.finalAmount;
-                            else totalWithdrawal += t.finalAmount;
-                            completed++;
-                        }
-                        if (t.status === 'pending') pending++;
-                    }
-                }
-            }
-            
-            document.getElementById('totalRechargeStat').textContent = totalRecharge.toLocaleString('ar-IQ') + ' د.ع';
-            document.getElementById('totalWithdrawalStat').textContent = totalWithdrawal.toLocaleString('ar-IQ') + ' د.ع';
-            document.getElementById('pendingCountStat').textContent = pending;
-            document.getElementById('completedCountStat').textContent = completed;
-        }
+    .page.active {
+      display: block;
+    }
 
-        // ============ Support ============
-        window.openSupport = function() {
-            window.open('https://wa.me/message/LPX3FF4TG4XWK1', '_blank');
-        }
+    @keyframes fadeUp {
+      from {
+        opacity: 0;
+        transform: translateY(18px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
 
-        function showMainSection() {
-            document.getElementById('authSection').style.display = 'none';
-            document.getElementById('mainSection').style.display = 'block';
-        }
+    /* =========================================================
+       BALANCE CARD
+    ========================================================= */
+    .balance-card {
+      background: linear-gradient(145deg, var(--secondary), var(--secondary-light));
+      border-radius: var(--radius);
+      padding: 28px 24px 22px;
+      color: #fff;
+      box-shadow: 0 12px 35px rgba(26, 39, 68, 0.30);
+      margin-bottom: 22px;
+      position: relative;
+      overflow: hidden;
+    }
 
-        // ============ Initialize ============
-        onAuthStateChanged(auth, (user) => {
-            if (user) {
-                currentUser = user;
-                loadUserData();
-                showMainSection();
-            } else {
-                showLogin();
-            }
-        });
-    </script>
-    <style>
-        * { font-family: 'Cairo', sans-serif; }
-        body { background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%); min-height: 100vh; }
-        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); z-index: 1000; overflow-y: auto; }
-        .modal-content { background: white; margin: 30px auto; padding: 30px; border-radius: 24px; max-width: 500px; width: 90%; animation: slideIn 0.3s; }
-        @keyframes slideIn { from { transform: translateY(-50px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
-        .input-field { width: 100%; padding: 14px 18px; border: 2px solid #e2e8f0; border-radius: 14px; font-size: 16px; transition: all 0.3s; background: #f8fafc; }
-        .input-field:focus { outline: none; border-color: #667eea; background: white; box-shadow: 0 0 0 4px rgba(102,126,234,0.1); }
-        .error-message { color: #dc2626; font-size: 13px; display: none; margin-bottom: 8px; }
-        .btn-primary { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 14px 30px; border: none; border-radius: 14px; font-size: 16px; font-weight: 700; cursor: pointer; transition: all 0.3s; width: 100%; }
-        .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 8px 25px rgba(102,126,234,0.4); }
-        .btn-secondary { background: #e2e8f0; color: #333; padding: 14px 30px; border: none; border-radius: 14px; font-size: 16px; cursor: pointer; }
-        .card { background: white; border-radius: 24px; padding: 24px; box-shadow: 0 10px 40px rgba(0,0,0,0.2); }
-        .glass-effect { background: rgba(255,255,255,0.95); backdrop-filter: blur(20px); }
-        .logo-image { width: 110px; height: 110px; border-radius: 50%; object-fit: cover; border: 4px solid #667eea; box-shadow: 0 8px 30px rgba(102,126,234,0.4); }
-        .rafidain-logo { width: 120px; height: 120px; border-radius: 50%; object-fit: cover; border: 4px solid #dc2626; box-shadow: 0 8px 30px rgba(220,38,38,0.3); }
-        .whatsapp-float { position: fixed; bottom: 30px; left: 30px; width: 60px; height: 60px; background: #25D366; border-radius: 50%; display: flex; align-items: center; justify-content: center; box-shadow: 0 8px 25px rgba(37,211,102,0.5); cursor: pointer; z-index: 9998; animation: pulse 2s infinite; }
-        .whatsapp-float:hover { transform: scale(1.1); }
-        @keyframes pulse { 0% { box-shadow: 0 0 0 0 rgba(37,211,102,0.7); } 70% { box-shadow: 0 0 0 20px rgba(37,211,102,0); } 100% { box-shadow: 0 0 0 0 rgba(37,211,102,0); } }
-        .back-button { display: block; width: 100%; text-align: center; padding: 12px; color: #667eea; font-weight: 700; border: 2px solid #667eea; border-radius: 14px; background: transparent; cursor: pointer; transition: all 0.3s; }
-        .back-button:hover { background: #667eea; color: white; }
-    </style>
+    .balance-card::before {
+      content: '';
+      position: absolute;
+      top: -60px;
+      right: -60px;
+      width: 200px;
+      height: 200px;
+      background: rgba(245, 176, 65, 0.06);
+      border-radius: 50%;
+    }
+
+    .balance-card .label {
+      font-size: 14px;
+      opacity: 0.7;
+      font-weight: 500;
+    }
+
+    .balance-card .balance {
+      font-size: 42px;
+      font-weight: 900;
+      margin: 6px 0 12px;
+      letter-spacing: 1px;
+    }
+
+    .balance-card .balance span {
+      font-size: 24px;
+      font-weight: 700;
+      opacity: 0.8;
+    }
+
+    .balance-card .wallet-row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      background: rgba(255, 255, 255, 0.07);
+      padding: 10px 16px;
+      border-radius: var(--radius-sm);
+      margin-top: 8px;
+      backdrop-filter: blur(4px);
+    }
+
+    .balance-card .wallet-row .wallet-id {
+      font-family: monospace;
+      font-size: 16px;
+      letter-spacing: 1px;
+      flex: 1;
+    }
+
+    .balance-card .wallet-row .copy-btn {
+      background: rgba(255, 255, 255, 0.12);
+      border: none;
+      color: #fff;
+      width: 38px;
+      height: 38px;
+      border-radius: 50%;
+      cursor: pointer;
+      transition: 0.3s;
+      font-size: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .balance-card .wallet-row .copy-btn:hover {
+      background: rgba(245, 176, 65, 0.30);
+      transform: scale(1.05);
+    }
+
+    /* =========================================================
+       ACTION BUTTONS
+    ========================================================= */
+    .action-buttons {
+      display: flex;
+      gap: 14px;
+      margin-bottom: 24px;
+    }
+
+    .action-buttons .btn-action {
+      flex: 1;
+      padding: 14px 0;
+      border: none;
+      border-radius: var(--radius-sm);
+      font-size: 16px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: 0.3s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      background: var(--white);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.04);
+      border: 2px solid #e2e6ee;
+    }
+
+    .action-buttons .btn-action.deposit {
+      background: linear-gradient(135deg, var(--success), var(--success-light));
+      color: #fff;
+      border: none;
+      box-shadow: 0 6px 20px rgba(39, 174, 96, 0.25);
+    }
+
+    .action-buttons .btn-action.withdraw {
+      background: linear-gradient(135deg, var(--primary-dark), var(--primary));
+      color: #fff;
+      border: none;
+      box-shadow: 0 6px 20px rgba(230, 126, 34, 0.25);
+    }
+
+    .action-buttons .btn-action:active {
+      transform: scale(0.95);
+    }
+
+    .action-buttons .btn-action:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    /* =========================================================
+       TRANSACTIONS
+    ========================================================= */
+    .recent-title {
+      font-size: 17px;
+      font-weight: 700;
+      color: var(--secondary);
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .transaction-item {
+      background: var(--white);
+      padding: 14px 18px;
+      border-radius: var(--radius-sm);
+      margin-bottom: 10px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+      border-right: 4px solid var(--success);
+      transition: 0.2s;
+    }
+
+    .transaction-item.withdraw {
+      border-right-color: var(--primary-dark);
+    }
+
+    .transaction-item .tx-info {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .transaction-item .tx-type {
+      font-weight: 700;
+      font-size: 15px;
+      color: var(--secondary);
+    }
+
+    .transaction-item .tx-date {
+      font-size: 12px;
+      color: var(--gray);
+    }
+
+    .transaction-item .tx-amount {
+      font-weight: 900;
+      font-size: 18px;
+    }
+
+    .transaction-item .tx-amount.positive {
+      color: var(--success);
+    }
+
+    .transaction-item .tx-amount.negative {
+      color: var(--primary-dark);
+    }
+
+    /* =========================================================
+       PROFILE
+    ========================================================= */
+    .profile-card {
+      background: var(--white);
+      border-radius: var(--radius);
+      padding: 24px 20px;
+      box-shadow: var(--shadow);
+    }
+
+    .profile-card .profile-item {
+      display: flex;
+      justify-content: space-between;
+      padding: 12px 0;
+      border-bottom: 1px solid #f0f2f8;
+    }
+
+    .profile-card .profile-item:last-child {
+      border-bottom: none;
+    }
+
+    .profile-card .profile-item .label {
+      font-weight: 700;
+      color: var(--gray);
+      font-size: 14px;
+    }
+
+    .profile-card .profile-item .value {
+      font-weight: 700;
+      color: var(--secondary);
+      font-size: 15px;
+      text-align: left;
+    }
+
+    /* =========================================================
+       COMPLETION BANNER
+    ========================================================= */
+    .profile-completion-banner {
+      background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+      color: #fff;
+      padding: 16px 20px;
+      margin: 16px 20px 0;
+      border-radius: var(--radius-sm);
+      font-weight: 700;
+      font-size: 15px;
+      text-align: center;
+      box-shadow: 0 6px 20px rgba(245, 176, 65, 0.25);
+      display: none;
+      animation: fadeUp 0.4s ease;
+    }
+
+    .profile-completion-banner .banner-icon {
+      font-size: 28px;
+      display: block;
+      margin-bottom: 6px;
+    }
+
+    .profile-completion-banner .complete-btn {
+      background: #fff;
+      color: var(--primary-dark);
+      border: none;
+      padding: 8px 24px;
+      border-radius: 30px;
+      font-weight: 700;
+      font-size: 16px;
+      cursor: pointer;
+      margin-top: 10px;
+      transition: 0.3s;
+    }
+
+    .profile-completion-banner .complete-btn:hover {
+      transform: scale(1.04);
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15);
+    }
+
+    /* =========================================================
+       COMPLETION PAGE
+    ========================================================= */
+    .completion-card {
+      background: var(--white);
+      border-radius: var(--radius);
+      padding: 24px 20px;
+      box-shadow: var(--shadow);
+    }
+
+    .completion-card .payment-method {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      padding: 16px;
+      border: 2px solid #e2e6ee;
+      border-radius: var(--radius-sm);
+      cursor: pointer;
+      transition: 0.3s;
+      margin-bottom: 16px;
+    }
+
+    .completion-card .payment-method:hover {
+      border-color: var(--primary);
+    }
+
+    .completion-card .payment-method.selected {
+      border-color: var(--primary);
+      background: rgba(245, 176, 65, 0.06);
+    }
+
+    .completion-card .payment-method img {
+      width: 48px;
+      height: 48px;
+      border-radius: 12px;
+      object-fit: cover;
+    }
+
+    .completion-card .payment-method .method-info {
+      flex: 1;
+    }
+
+    .completion-card .payment-method .method-name {
+      font-weight: 700;
+      font-size: 16px;
+      color: var(--secondary);
+    }
+
+    .completion-card .payment-method .method-desc {
+      font-size: 13px;
+      color: var(--gray);
+    }
+
+    .completion-card .payment-method .check-mark {
+      color: var(--success);
+      font-size: 20px;
+      display: none;
+    }
+
+    .completion-card .payment-method.selected .check-mark {
+      display: block;
+    }
+
+    .completion-card .form-hint {
+      font-size: 13px;
+      color: var(--gray);
+      margin-top: 4px;
+    }
+
+    .completion-card .btn-complete {
+      width: 100%;
+      padding: 14px;
+      border: none;
+      border-radius: var(--radius-sm);
+      font-size: 18px;
+      font-weight: 700;
+      background: linear-gradient(135deg, var(--success), var(--success-light));
+      color: #fff;
+      cursor: pointer;
+      transition: 0.3s;
+      margin-top: 16px;
+      box-shadow: 0 6px 20px rgba(39, 174, 96, 0.25);
+    }
+
+    .completion-card .btn-complete:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 10px 28px rgba(39, 174, 96, 0.35);
+    }
+
+    .completion-card .btn-complete:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    /* =========================================================
+       PENDING PAGE
+    ========================================================= */
+    .pending-card {
+      background: var(--white);
+      border-radius: var(--radius);
+      padding: 32px 24px;
+      text-align: center;
+      box-shadow: var(--shadow);
+    }
+
+    .pending-card .pending-icon {
+      font-size: 64px;
+      color: var(--primary);
+      margin-bottom: 16px;
+    }
+
+    .pending-card h3 {
+      font-size: 22px;
+      color: var(--secondary);
+      margin-bottom: 8px;
+    }
+
+    .pending-card p {
+      color: var(--gray);
+      font-size: 16px;
+      line-height: 1.6;
+    }
+
+    /* =========================================================
+       ADMIN STATS
+    ========================================================= */
+    .stats-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin-bottom: 20px;
+    }
+
+    .stat-card {
+      background: var(--white);
+      border-radius: var(--radius-sm);
+      padding: 18px 16px;
+      box-shadow: var(--shadow);
+      text-align: center;
+      border-right: 4px solid var(--primary);
+      transition: 0.2s;
+    }
+
+    .stat-card:hover {
+      transform: translateY(-2px);
+    }
+
+    .stat-card .stat-icon {
+      font-size: 28px;
+      margin-bottom: 6px;
+    }
+
+    .stat-card .stat-number {
+      font-size: 24px;
+      font-weight: 900;
+      color: var(--secondary);
+    }
+
+    .stat-card .stat-label {
+      font-size: 13px;
+      color: var(--gray);
+      font-weight: 700;
+    }
+
+    .stat-card.blue {
+      border-right-color: #3498db;
+    }
+    .stat-card.green {
+      border-right-color: var(--success);
+    }
+    .stat-card.orange {
+      border-right-color: var(--primary-dark);
+    }
+    .stat-card.purple {
+      border-right-color: #8e44ad;
+    }
+
+    .filter-section {
+      display: flex;
+      gap: 12px;
+      margin-bottom: 20px;
+      flex-wrap: wrap;
+    }
+
+    .filter-section select {
+      flex: 1;
+      padding: 10px 14px;
+      border: 2px solid #e2e6ee;
+      border-radius: var(--radius-sm);
+      font-size: 15px;
+      font-family: 'Tajawal', sans-serif;
+      background: #fff;
+      transition: 0.3s;
+      min-width: 100px;
+    }
+
+    .filter-section select:focus {
+      border-color: var(--primary);
+      outline: none;
+    }
+
+    .filter-section .filter-btn {
+      padding: 10px 20px;
+      border: none;
+      border-radius: var(--radius-sm);
+      background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+      color: #fff;
+      font-weight: 700;
+      cursor: pointer;
+      transition: 0.3s;
+    }
+
+    .filter-section .filter-btn:hover {
+      transform: scale(1.02);
+    }
+
+    /* =========================================================
+       ADMIN USERS
+    ========================================================= */
+    .admin-search {
+      display: flex;
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+
+    .admin-search input {
+      flex: 1;
+      padding: 12px 16px;
+      border: 2px solid #e2e6ee;
+      border-radius: var(--radius-sm);
+      font-size: 15px;
+      font-family: 'Tajawal', sans-serif;
+      transition: 0.3s;
+      background: #f8f9fc;
+    }
+
+    .admin-search input:focus {
+      border-color: var(--primary);
+      outline: none;
+      box-shadow: 0 0 0 4px rgba(245, 176, 65, 0.10);
+    }
+
+    .admin-search .search-btn {
+      padding: 12px 20px;
+      border: none;
+      border-radius: var(--radius-sm);
+      background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+      color: #fff;
+      font-weight: 700;
+      cursor: pointer;
+      transition: 0.3s;
+    }
+
+    .admin-search .search-btn:hover {
+      transform: scale(1.02);
+    }
+
+    .admin-user-item {
+      background: var(--white);
+      border-radius: var(--radius-sm);
+      padding: 16px 18px;
+      margin-bottom: 12px;
+      box-shadow: var(--shadow);
+      border-right: 4px solid #3498db;
+      transition: 0.2s;
+    }
+
+    .admin-user-item:hover {
+      transform: translateY(-2px);
+    }
+
+    .admin-user-item .user-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 8px;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+
+    .admin-user-item .user-name {
+      font-weight: 700;
+      font-size: 16px;
+      color: var(--secondary);
+    }
+
+    .admin-user-item .user-status {
+      font-size: 12px;
+      padding: 4px 12px;
+      border-radius: 20px;
+      font-weight: 700;
+    }
+
+    .admin-user-item .user-status.pending {
+      background: #fef9e7;
+      color: #f39c12;
+    }
+
+    .admin-user-item .user-status.approved {
+      background: #eafaf1;
+      color: var(--success);
+    }
+
+    .admin-user-item .user-status.rejected {
+      background: #fdedec;
+      color: var(--danger);
+    }
+
+    .admin-user-item .user-details {
+      font-size: 14px;
+      color: #555;
+      margin-bottom: 8px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 4px 12px;
+    }
+
+    .admin-user-item .user-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 8px;
+    }
+
+    .admin-user-item .user-actions button {
+      padding: 6px 16px;
+      border: none;
+      border-radius: 10px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: 0.3s;
+      font-family: 'Tajawal', sans-serif;
+      font-size: 13px;
+    }
+
+    .admin-user-item .user-actions .edit-btn {
+      background: #3498db;
+      color: #fff;
+    }
+
+    .admin-user-item .user-actions .edit-btn:hover {
+      background: #2980b9;
+    }
+
+    .admin-user-item .user-actions .approve-btn {
+      background: var(--success);
+      color: #fff;
+    }
+
+    .admin-user-item .user-actions .approve-btn:hover {
+      background: #1e8449;
+    }
+
+    .admin-user-item .user-actions .reject-btn {
+      background: var(--danger);
+      color: #fff;
+    }
+
+    .admin-user-item .user-actions .reject-btn:hover {
+      background: #c0392b;
+    }
+
+    .admin-user-item .verification-details {
+      background: #f8f9fc;
+      padding: 12px 16px;
+      border-radius: 12px;
+      margin-top: 8px;
+      font-size: 14px;
+    }
+
+    .admin-user-item .verification-details strong {
+      color: var(--secondary);
+    }
+
+    /* =========================================================
+       ADMIN TRANSACTIONS
+    ========================================================= */
+    .admin-tx-item {
+      background: var(--white);
+      border-radius: var(--radius-sm);
+      padding: 14px 18px;
+      margin-bottom: 10px;
+      box-shadow: var(--shadow);
+      border-right: 4px solid #3498db;
+      transition: 0.2s;
+    }
+
+    .admin-tx-item:hover {
+      transform: translateY(-2px);
+    }
+
+    .admin-tx-item .tx-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+
+    .admin-tx-item .tx-user {
+      font-weight: 700;
+      color: var(--secondary);
+      font-size: 15px;
+    }
+
+    .admin-tx-item .tx-amount {
+      font-weight: 900;
+      font-size: 18px;
+    }
+
+    .admin-tx-item .tx-amount.deposit {
+      color: var(--success);
+    }
+
+    .admin-tx-item .tx-amount.withdraw {
+      color: var(--primary-dark);
+    }
+
+    .admin-tx-item .tx-details {
+      font-size: 14px;
+      color: #555;
+      margin-top: 4px;
+    }
+
+    .admin-tx-item .tx-status {
+      font-size: 12px;
+      padding: 3px 12px;
+      border-radius: 20px;
+      font-weight: 700;
+    }
+
+    .admin-tx-item .tx-status.pending {
+      background: #fef9e7;
+      color: #f39c12;
+    }
+
+    .admin-tx-item .tx-status.approved {
+      background: #eafaf1;
+      color: var(--success);
+    }
+
+    .admin-tx-item .tx-status.rejected {
+      background: #fdedec;
+      color: var(--danger);
+    }
+
+    .admin-tx-item .tx-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 8px;
+    }
+
+    .admin-tx-item .tx-actions button {
+      padding: 5px 14px;
+      border: none;
+      border-radius: 10px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: 0.3s;
+      font-family: 'Tajawal', sans-serif;
+      font-size: 13px;
+    }
+
+    .admin-tx-item .tx-actions .approve-tx {
+      background: var(--success);
+      color: #fff;
+    }
+
+    .admin-tx-item .tx-actions .approve-tx:hover {
+      background: #1e8449;
+    }
+
+    .admin-tx-item .tx-actions .reject-tx {
+      background: var(--danger);
+      color: #fff;
+    }
+
+    .admin-tx-item .tx-actions .reject-tx:hover {
+      background: #c0392b;
+    }
+
+    .admin-tx-item .tx-note {
+      background: #f8f9fc;
+      padding: 8px 12px;
+      border-radius: 8px;
+      margin-top: 6px;
+      font-size: 13px;
+      color: var(--danger);
+      border-right: 3px solid var(--danger);
+    }
+
+    /* =========================================================
+       EDIT MODAL
+    ========================================================= */
+    .modal-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.50);
+      backdrop-filter: blur(6px);
+      z-index: 9998;
+      display: none;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .modal-overlay.active {
+      display: flex;
+    }
+
+    .modal-box {
+      background: var(--white);
+      border-radius: var(--radius);
+      padding: 28px 24px;
+      width: 90%;
+      max-width: 400px;
+      max-height: 90vh;
+      overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
+      scroll-behavior: smooth;
+      animation: fadeUp 0.3s ease;
+      box-shadow: var(--shadow-strong);
+    }
+
+    .modal-box h3 {
+      font-size: 20px;
+      color: var(--secondary);
+      margin-bottom: 16px;
+      text-align: center;
+    }
+
+    .modal-box .modal-actions {
+      display: flex;
+      gap: 12px;
+      margin-top: 16px;
+    }
+
+    .modal-box .modal-actions button {
+      flex: 1;
+      padding: 12px;
+      border: none;
+      border-radius: var(--radius-sm);
+      font-weight: 700;
+      cursor: pointer;
+      transition: 0.3s;
+      font-family: 'Tajawal', sans-serif;
+      font-size: 16px;
+    }
+
+    .modal-box .modal-actions .save-btn {
+      background: linear-gradient(135deg, var(--success), var(--success-light));
+      color: #fff;
+    }
+
+    .modal-box .modal-actions .cancel-btn {
+      background: var(--danger);
+      color: #fff;
+    }
+
+    /* =========================================================
+       DEPOSIT MODAL
+    ========================================================= */
+    .deposit-modal .modal-box {
+      max-width: 480px;
+      background: linear-gradient(145deg, #ffffff, #f8f9fc);
+      border-radius: 30px;
+      padding: 30px 24px;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.30);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .deposit-modal .modal-box::before {
+      content: '';
+      position: absolute;
+      top: -80px;
+      right: -80px;
+      width: 250px;
+      height: 250px;
+      background: radial-gradient(circle, rgba(245, 176, 65, 0.06) 0%, transparent 70%);
+      border-radius: 50%;
+    }
+
+    .deposit-modal .modal-box .deposit-header {
+      text-align: center;
+      margin-bottom: 24px;
+    }
+
+    .deposit-modal .modal-box .deposit-header .icon-circle {
+      width: 70px;
+      height: 70px;
+      background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 12px;
+      font-size: 32px;
+      color: #fff;
+      box-shadow: 0 8px 25px rgba(245, 176, 65, 0.30);
+    }
+
+    .deposit-modal .modal-box .deposit-header h3 {
+      font-size: 22px;
+      font-weight: 900;
+      color: var(--secondary);
+      margin: 0;
+    }
+
+    .deposit-modal .modal-box .deposit-header p {
+      color: var(--gray);
+      font-size: 14px;
+      margin-top: 4px;
+    }
+
+    .deposit-modal .info-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 10px 0;
+      border-bottom: 1px solid #eef2f7;
+    }
+
+    .deposit-modal .info-row .label {
+      font-weight: 700;
+      color: var(--gray);
+      font-size: 14px;
+    }
+
+    .deposit-modal .info-row .value {
+      font-weight: 700;
+      color: var(--secondary);
+      font-size: 16px;
+      background: #f0f2f8;
+      padding: 4px 14px;
+      border-radius: 30px;
+      direction: ltr;
+    }
+
+    .deposit-modal .amount-section {
+      background: #f8f9fc;
+      border-radius: var(--radius-sm);
+      padding: 16px;
+      margin: 16px 0;
+      border: 2px solid #eef2f7;
+      transition: 0.3s;
+    }
+
+    .deposit-modal .amount-section:focus-within {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 4px rgba(245, 176, 65, 0.08);
+    }
+
+    .deposit-modal .amount-section label {
+      font-weight: 700;
+      font-size: 14px;
+      color: var(--secondary);
+      display: block;
+      margin-bottom: 6px;
+    }
+
+    .deposit-modal .amount-section .amount-input-wrapper {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .deposit-modal .amount-section .amount-input-wrapper button {
+      width: 40px;
+      height: 40px;
+      border: none;
+      border-radius: 50%;
+      background: var(--white);
+      font-size: 20px;
+      font-weight: 700;
+      cursor: pointer;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+      transition: 0.3s;
+      color: var(--secondary);
+      border: 2px solid #eef2f7;
+    }
+
+    .deposit-modal .amount-section .amount-input-wrapper button:hover {
+      background: var(--primary);
+      color: #fff;
+      border-color: var(--primary);
+      transform: scale(1.05);
+    }
+
+    .deposit-modal .amount-section .amount-input-wrapper button:active {
+      transform: scale(0.93);
+    }
+
+    .deposit-modal .amount-section input[type="number"] {
+      flex: 1;
+      border: none;
+      background: transparent;
+      font-size: 28px;
+      font-weight: 900;
+      color: var(--secondary);
+      text-align: center;
+      padding: 8px 0;
+      outline: none;
+      -moz-appearance: textfield;
+    }
+
+    .deposit-modal .amount-section input[type="number"]::-webkit-outer-spin-button,
+    .deposit-modal .amount-section input[type="number"]::-webkit-inner-spin-button {
+      -webkit-appearance: none;
+      margin: 0;
+    }
+
+    .deposit-modal .amount-section .amount-hint {
+      display: flex;
+      justify-content: space-between;
+      font-size: 13px;
+      color: var(--gray);
+      margin-top: 4px;
+    }
+
+    .deposit-modal .code-box {
+      background: var(--secondary);
+      padding: 14px 18px;
+      border-radius: var(--radius-sm);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin: 16px 0;
+      direction: ltr;
+    }
+
+    .deposit-modal .code-box .code-text {
+      font-family: 'Courier New', monospace;
+      font-size: 18px;
+      font-weight: 900;
+      color: var(--primary);
+      letter-spacing: 1px;
+      word-break: break-all;
+    }
+
+    .deposit-modal .code-box .copy-code-btn {
+      background: rgba(255, 255, 255, 0.08);
+      border: none;
+      color: #fff;
+      padding: 6px 16px;
+      border-radius: 30px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: 0.3s;
+      font-size: 14px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .deposit-modal .code-box .copy-code-btn:hover {
+      background: var(--primary);
+      color: var(--secondary);
+    }
+
+    .deposit-modal .net-amount {
+      background: linear-gradient(135deg, #eafaf1, #d5f5e3);
+      border-radius: var(--radius-sm);
+      padding: 14px;
+      text-align: center;
+      margin: 12px 0;
+    }
+
+    .deposit-modal .net-amount .label {
+      font-size: 14px;
+      color: var(--secondary);
+      font-weight: 700;
+    }
+
+    .deposit-modal .net-amount .amount {
+      font-size: 28px;
+      font-weight: 900;
+      color: var(--success);
+    }
+
+    .deposit-modal .file-upload {
+      border: 2px dashed #d5dbe8;
+      border-radius: var(--radius-sm);
+      padding: 20px;
+      text-align: center;
+      cursor: pointer;
+      transition: 0.3s;
+      margin: 12px 0;
+      background: #fafbfd;
+    }
+
+    .deposit-modal .file-upload:hover {
+      border-color: var(--primary);
+      background: #fcf9f0;
+    }
+
+    .deposit-modal .file-upload .icon {
+      font-size: 36px;
+      color: var(--primary);
+      margin-bottom: 6px;
+    }
+
+    .deposit-modal .file-upload .file-name {
+      font-weight: 700;
+      color: var(--secondary);
+      margin-top: 4px;
+    }
+
+    .deposit-modal .file-upload .file-hint {
+      font-size: 13px;
+      color: var(--gray);
+    }
+
+    .deposit-modal .btn-submit-deposit {
+      width: 100%;
+      padding: 16px;
+      border: none;
+      border-radius: var(--radius-sm);
+      font-size: 18px;
+      font-weight: 700;
+      background: linear-gradient(135deg, var(--success), var(--success-light));
+      color: #fff;
+      cursor: pointer;
+      transition: 0.3s;
+      margin-top: 16px;
+      box-shadow: 0 6px 20px rgba(39, 174, 96, 0.25);
+    }
+
+    .deposit-modal .btn-submit-deposit:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 10px 28px rgba(39, 174, 96, 0.35);
+    }
+
+    .deposit-modal .btn-submit-deposit:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    .deposit-modal .btn-cancel-deposit {
+      width: 100%;
+      padding: 14px;
+      border: none;
+      border-radius: var(--radius-sm);
+      font-size: 16px;
+      font-weight: 700;
+      background: #eef2f7;
+      color: var(--gray);
+      cursor: pointer;
+      transition: 0.3s;
+      margin-top: 8px;
+    }
+
+    .deposit-modal .btn-cancel-deposit:hover {
+      background: var(--danger);
+      color: #fff;
+    }
+
+    /* =========================================================
+       BOTTOM NAV
+    ========================================================= */
+    .bottom-nav {
+      background: var(--white);
+      border-top: 1px solid #e8ecf4;
+      display: flex;
+      justify-content: space-around;
+      padding: 8px 0 12px;
+      border-radius: 28px 28px 0 0;
+      box-shadow: 0 -6px 25px rgba(0, 0, 0, 0.04);
+      z-index: 10;
+      flex-shrink: 0;
+    }
+
+    .bottom-nav .nav-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      background: none;
+      border: none;
+      cursor: pointer;
+      color: #b0b8c8;
+      transition: 0.3s;
+      padding: 4px 12px;
+      border-radius: var(--radius-sm);
+      font-family: 'Tajawal', sans-serif;
+      font-size: 10px;
+      font-weight: 700;
+      gap: 2px;
+      min-width: 50px;
+    }
+
+    .bottom-nav .nav-item i {
+      font-size: 22px;
+      transition: 0.3s;
+    }
+
+    .bottom-nav .nav-item.active {
+      color: var(--primary);
+    }
+
+    .bottom-nav .nav-item.active i {
+      transform: translateY(-3px);
+      text-shadow: 0 4px 12px rgba(245, 176, 65, 0.25);
+    }
+
+    .bottom-nav .nav-item.logout-btn {
+      color: var(--danger);
+    }
+
+    /* =========================================================
+       RESPONSIVE (الهواتف)
+    ========================================================= */
+    @media (max-width: 440px) {
+      .app-container {
+        border-radius: 20px;
+        height: 100vh;
+        max-height: 100vh;
+      }
+
+      .balance-card .balance {
+        font-size: 34px;
+      }
+
+      .action-buttons .btn-action {
+        font-size: 14px;
+        padding: 12px 0;
+      }
+
+      .stats-grid {
+        gap: 8px;
+      }
+
+      .stat-card .stat-number {
+        font-size: 20px;
+      }
+
+      .deposit-modal .modal-box {
+        padding: 20px 16px;
+      }
+
+      .deposit-modal .amount-section input[type="number"] {
+        font-size: 24px;
+      }
+
+      .deposit-modal .code-box .code-text {
+        font-size: 15px;
+      }
+
+      .deposit-modal .net-amount .amount {
+        font-size: 22px;
+      }
+
+      .deposit-modal .deposit-header .icon-circle {
+        width: 60px;
+        height: 60px;
+        font-size: 26px;
+      }
+
+      .deposit-modal .deposit-header h3 {
+        font-size: 20px;
+      }
+
+      .bottom-nav .nav-item {
+        min-width: 44px;
+        font-size: 9px;
+      }
+
+      .bottom-nav .nav-item i {
+        font-size: 20px;
+      }
+
+      .page-content {
+        padding: 16px 16px 70px;
+      }
+    }
+
+    @media (max-width: 360px) {
+      .app-header .brand {
+        font-size: 16px;
+      }
+      .app-header .user-badge {
+        font-size: 11px;
+        padding: 4px 10px;
+      }
+      .balance-card .balance {
+        font-size: 28px;
+      }
+      .balance-card .balance span {
+        font-size: 18px;
+      }
+      .deposit-modal .modal-box {
+        padding: 16px 12px;
+      }
+      .deposit-modal .amount-section input[type="number"] {
+        font-size: 20px;
+      }
+    }
+  </style>
 </head>
 <body>
-    <div id="notificationContainer"></div>
-    <div id="dialogContainer"></div>
 
-    <!-- WhatsApp Float -->
-    <div class="whatsapp-float" onclick="openSupport()">
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="white" width="30" height="30"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+<!-- ===== TOAST ===== -->
+<div id="toastContainer" class="toast-container"></div>
+
+<!-- ===== EDIT MODAL (Admin) ===== -->
+<div class="modal-overlay" id="editModal">
+  <div class="modal-box">
+    <h3><i class="fas fa-user-edit" style="color:var(--primary);"></i> تعديل المستخدم</h3>
+    <div class="form-group"><label>الاسم الكامل</label><input type="text" id="editFullName" /></div>
+    <div class="form-group"><label>اسم المستخدم</label><input type="text" id="editUsername" /></div>
+    <div class="form-group"><label>البريد الإلكتروني</label><input type="email" id="editEmail" /></div>
+    <div class="form-group"><label>رقم الهاتف</label><input type="tel" id="editPhone" /></div>
+    <div class="form-group"><label>العنوان</label><input type="text" id="editAddress" /></div>
+    <div class="form-group"><label>الرصيد (د.ع)</label><input type="number" id="editBalance" step="0.01" /></div>
+    <div class="form-group"><label>حالة التحقق</label>
+      <select id="editVerificationStatus">
+        <option value="pending">⏳ قيد المراجعة</option>
+        <option value="approved">✅ مفعّل</option>
+        <option value="rejected">❌ مرفوض</option>
+      </select>
+    </div>
+    <div class="modal-actions">
+      <button class="save-btn" id="saveEditBtn"><i class="fas fa-save"></i> حفظ</button>
+      <button class="cancel-btn" id="cancelEditBtn"><i class="fas fa-times"></i> إلغاء</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== DEPOSIT MODAL ===== -->
+<div class="modal-overlay deposit-modal" id="depositModal">
+  <div class="modal-box">
+    <!-- الرأس -->
+    <div class="deposit-header">
+      <div class="icon-circle"><i class="fas fa-plus-circle"></i></div>
+      <h3>إيداع أموال</h3>
+      <p>أدخل المبلغ وقم برفع صورة التحويل</p>
     </div>
 
-    <!-- Auth Section -->
-    <div id="authSection" class="flex items-center justify-center min-h-screen px-4">
-        <div class="card w-full max-w-md p-8 glass-effect">
-            <div class="text-center mb-8">
-                <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRzJNKAKZOXf-qJmfAWWOS9LUlXe0_bZ5yBfnRe9eqkng&s=10" alt="شعار" class="logo-image mx-auto mb-4">
-                <h1 class="text-3xl font-bold text-gray-800">محفظة أسياسيل</h1>
-                <p class="text-gray-600">الإلكترونية</p>
-            </div>
-
-            <!-- Login -->
-            <div id="loginForm">
-                <h2 class="text-2xl font-bold text-center mb-6">تسجيل الدخول</h2>
-                <input type="text" id="loginInput" placeholder="البريد الإلكتروني أو اسم المستخدم" class="input-field mb-2">
-                <div id="loginInputError" class="error-message"></div>
-                <input type="password" id="loginPassword" placeholder="كلمة المرور" class="input-field mb-2">
-                <div id="loginPasswordError" class="error-message"></div>
-                <button onclick="login()" class="btn-primary mb-4">تسجيل الدخول</button>
-                <div class="flex justify-between text-sm mb-4">
-                    <button onclick="showSignup()" class="text-blue-600 hover:underline font-semibold">إنشاء حساب</button>
-                    <button onclick="showResetPassword()" class="text-blue-600 hover:underline font-semibold">نسيت كلمة المرور؟</button>
-                </div>
-            </div>
-
-            <!-- Signup -->
-            <div id="signupForm" style="display:none;">
-                <h2 class="text-2xl font-bold text-center mb-6">إنشاء حساب جديد</h2>
-                <input type="text" id="signupFullName" placeholder="الاسم الثلاثي" class="input-field mb-2">
-                <div id="signupFullNameError" class="error-message"></div>
-                <input type="tel" id="signupPhone" placeholder="رقم الهاتف (077xxxxxxxx)" class="input-field mb-2" maxlength="11">
-                <div id="signupPhoneError" class="error-message"></div>
-                <input type="text" id="signupUsername" placeholder="اسم المستخدم" class="input-field mb-2">
-                <div id="signupUsernameError" class="error-message"></div>
-                <input type="email" id="signupEmail" placeholder="البريد الإلكتروني" class="input-field mb-2">
-                <div id="signupEmailError" class="error-message"></div>
-                <input type="password" id="signupPassword" placeholder="كلمة المرور (6+ أحرف)" class="input-field mb-2">
-                <div id="signupPasswordError" class="error-message"></div>
-                <button onclick="signup()" class="btn-primary mb-4">إنشاء الحساب</button>
-                <button onclick="showLogin()" class="back-button">العودة لتسجيل الدخول</button>
-            </div>
-
-            <!-- Reset Password -->
-            <div id="resetPasswordForm" style="display:none;">
-                <h2 class="text-2xl font-bold text-center mb-6">إعادة تعيين كلمة المرور</h2>
-                <input type="email" id="resetEmail" placeholder="البريد الإلكتروني" class="input-field mb-2">
-                <div id="resetEmailError" class="error-message"></div>
-                <button onclick="resetPassword()" class="btn-primary mb-4">إرسال الرابط</button>
-                <button onclick="showLogin()" class="back-button">العودة لتسجيل الدخول</button>
-            </div>
-        </div>
+    <!-- من -->
+    <div class="info-row">
+      <span class="label"><i class="fas fa-user"></i> من (رقم هاتفك)</span>
+      <span class="value" id="depositFromPhone">-</span>
     </div>
 
-    <!-- Main Section -->
-    <div id="mainSection" style="display:none;" class="container mx-auto px-4 py-8">
-        <div class="flex justify-between items-center mb-8">
-            <h1 id="welcomeMessage" class="text-3xl font-bold text-white">مرحباً</h1>
-            <div class="flex gap-2">
-                <button onclick="showProfileInfo()" class="bg-white text-gray-800 px-4 py-2 rounded-lg font-semibold">👤 معلوماتي</button>
-                <button onclick="logout()" class="bg-red-500 text-white px-4 py-2 rounded-lg font-semibold">تسجيل الخروج</button>
-            </div>
-        </div>
-
-        <div class="card mb-8 text-center bg-gradient-to-br from-blue-600 to-purple-600 text-white">
-            <h2 class="text-2xl font-bold mb-4">رصيد المحفظة</h2>
-            <p id="userBalance" class="text-5xl font-bold mb-6">0 د.ع</p>
-            <div class="flex justify-center gap-4">
-                <button onclick="showRechargeModal()" class="bg-white text-blue-600 px-8 py-3 rounded-lg font-bold">تعبئة الرصيد</button>
-                <button onclick="showWithdrawalModal()" class="bg-transparent border-2 border-white px-8 py-3 rounded-lg font-bold">سحب الأموال</button>
-            </div>
-            <p class="mt-4 text-sm">عمليات التعبئة اليومية: <span id="dailyRechargeCount" class="font-bold">0 / 5</span></p>
-        </div>
-
-        <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-            <div class="card text-center"><p class="text-3xl mb-2">💰</p><p class="text-gray-600 text-sm">إجمالي التعبئة</p><p id="totalRechargeStat" class="text-xl font-bold text-green-600">0</p></div>
-            <div class="card text-center"><p class="text-3xl mb-2">💸</p><p class="text-gray-600 text-sm">إجمالي السحب</p><p id="totalWithdrawalStat" class="text-xl font-bold text-red-600">0</p></div>
-            <div class="card text-center"><p class="text-3xl mb-2">⏳</p><p class="text-gray-600 text-sm">قيد التدقيق</p><p id="pendingCountStat" class="text-xl font-bold text-yellow-600">0</p></div>
-            <div class="card text-center"><p class="text-3xl mb-2">✅</p><p class="text-gray-600 text-sm">مكتملة</p><p id="completedCountStat" class="text-xl font-bold text-blue-600">0</p></div>
-        </div>
-
-        <div class="card">
-            <h2 class="text-2xl font-bold mb-6">العمليات</h2>
-            <div id="transactionsList" class="space-y-4"><p class="text-center text-gray-600">لا توجد عمليات</p></div>
-        </div>
+    <!-- إلى -->
+    <div class="info-row" style="border-bottom: none;">
+      <span class="label"><i class="fas fa-arrow-left"></i> إلى</span>
+      <span class="value" style="color:var(--primary-dark); background:#fef5e7;">07732773761</span>
     </div>
 
-    <!-- Recharge Modal -->
-    <div id="rechargeModal" class="modal">
-        <div class="modal-content">
-            <h2 class="text-2xl font-bold mb-4">💰 تعبئة الرصيد</h2>
-            <label class="block text-sm mb-1">رقم الطلب</label>
-            <input type="text" id="rechargeRequestNumber" class="input-field bg-gray-100 mb-3" readonly>
-            <label class="block text-sm mb-1">رقم الهاتف المحول منه</label>
-            <input type="text" id="rechargePhone" class="input-field bg-gray-100 mb-3" readonly>
-            <label class="block text-sm mb-1">المبلغ المراد تحويله</label>
-            <input type="number" id="rechargeAmount" class="input-field mb-1" min="10000" max="60000" oninput="calculateFinalAmount()" placeholder="أدخل المبلغ">
-            <div id="rechargeAmountError" class="error-message"></div>
-            <p class="text-xs text-gray-500 mb-3">الحد الأدنى: 10,000 د.ع | الأقصى: 60,000 د.ع</p>
-            
-            <div id="transferCodeContainer" class="mb-3 p-4 bg-gray-100 rounded-lg" style="display:none;">
-                <p class="text-sm font-bold mb-2">كود التحويل:</p>
-                <div class="flex items-center justify-between">
-                    <code id="transferCode" class="text-lg font-bold text-blue-600"></code>
-                    <button onclick="copyTransferCode()" class="bg-blue-500 text-white px-4 py-2 rounded-lg text-sm">📋 نسخ</button>
-                </div>
-            </div>
-            
-            <label class="block text-sm mb-1">المبلغ المستحق (17.5% خصم)</label>
-            <input type="text" id="finalAmount" class="input-field bg-gray-100 mb-1" readonly>
-            <p id="finalAmountDisplay" class="text-sm text-green-600 font-bold mb-3"></p>
-            
-            <label class="block text-sm mb-1">صورة التحويل</label>
-            <input type="file" accept="image/*" onchange="handleImageUpload(event)" class="input-field mb-2">
-            <div id="uploadStatus" class="text-sm mb-2"></div>
-            <img id="imagePreview" class="max-w-full h-auto rounded-lg mb-3" style="display:none;">
-            
-            <div class="flex gap-3">
-                <button onclick="submitRecharge()" class="btn-primary">تعبئة الآن</button>
-                <button onclick="document.getElementById('rechargeModal').style.display='none'" class="btn-secondary">إلغاء</button>
-            </div>
-        </div>
+    <!-- المبلغ -->
+    <div class="amount-section">
+      <label>💰 المبلغ (دينار عراقي)</label>
+      <div class="amount-input-wrapper">
+        <button id="depositMinusBtn"><i class="fas fa-minus"></i></button>
+        <input type="number" id="depositAmount" value="10000" min="10000" max="60000" step="1000" />
+        <button id="depositPlusBtn"><i class="fas fa-plus"></i></button>
+      </div>
+      <div class="amount-hint">
+        <span>الحد الأدنى: 10,000 د.ع</span>
+        <span>الحد الأقصى: 60,000 د.ع</span>
+      </div>
     </div>
 
-    <!-- Rafidain Modal -->
-    <div id="rafidainModal" class="modal">
-        <div class="modal-content text-center">
-            <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRw6wG4pScM6BwHmrSjLI9e0eDDubqfr-qTQSiGVCm5IQ&s=10" alt="مصرف الرافدين" class="rafidain-logo mx-auto mb-4">
-            <h2 class="text-2xl font-bold mb-2">مصرف الرافدين</h2>
-            <p class="text-gray-600 mb-6">يرجى إدخال بيانات حسابك في مصرف الرافدين</p>
-            
-            <label class="block text-sm text-right mb-1">اسم حساب مصرف الرافدين</label>
-            <input type="text" id="rafidainCardName" class="input-field mb-3" placeholder="الاسم على البطاقة">
-            
-            <label class="block text-sm text-right mb-1">رقم حساب مصرف الرافدين (10 أرقام)</label>
-            <input type="text" id="rafidainAccountNumber" class="input-field mb-4" maxlength="10" placeholder="1234567890">
-            
-            <button onclick="saveRafidainInfo()" class="btn-primary mb-3">حفظ</button>
-            <button onclick="document.getElementById('rafidainModal').style.display='none'" class="btn-secondary">إلغاء</button>
-        </div>
+    <!-- الكود -->
+    <div class="code-box">
+      <span class="code-text" id="depositCode">*123*10000*07732773761#</span>
+      <button class="copy-code-btn" id="copyDepositCode"><i class="fas fa-copy"></i> نسخ</button>
     </div>
 
-    <!-- Withdrawal Modal -->
-    <div id="withdrawalModal" class="modal">
-        <div class="modal-content">
-            <h2 class="text-2xl font-bold mb-4">💸 سحب الأموال</h2>
-            <label class="block text-sm mb-1">رقم الطلب</label>
-            <input type="text" id="withdrawalRequestNumber" class="input-field bg-gray-100 mb-3" readonly>
-            
-            <div class="mb-3 p-4 bg-gray-100 rounded-lg">
-                <p class="text-sm font-bold mb-1">اسم الحساب:</p>
-                <p id="rafidainCardNameDisplay" class="font-bold"></p>
-                <p class="text-sm font-bold mt-2 mb-1">رقم الحساب:</p>
-                <p id="rafidainAccountDisplay" class="font-bold"></p>
-            </div>
-            
-            <label class="block text-sm mb-1">المبلغ المراد سحبه</label>
-            <input type="number" id="withdrawalAmount" class="input-field mb-1" min="10000" oninput="calculateWithdrawalAmount()" placeholder="أدخل المبلغ">
-            <div id="withdrawalAmountError" class="error-message"></div>
-            <p class="text-xs text-gray-500 mb-3">الحد الأدنى: 10,000 د.ع | رسوم: 0.5%</p>
-            
-            <label class="block text-sm mb-1">المبلغ النهائي</label>
-            <input type="text" id="withdrawalFinalAmount" class="input-field bg-gray-100 mb-3" readonly>
-            
-            <div class="flex gap-3">
-                <button onclick="submitWithdrawal()" class="btn-primary">سحب</button>
-                <button onclick="document.getElementById('withdrawalModal').style.display='none'" class="btn-secondary">إلغاء</button>
-            </div>
-        </div>
+    <!-- المبلغ الصافي -->
+    <div class="net-amount">
+      <div class="label">المبلغ الذي سيضاف لمحفظتك</div>
+      <div class="amount" id="depositNet">10,000 د.ع</div>
     </div>
+
+    <!-- رفع الصورة -->
+    <div class="file-upload" id="depositFileUpload">
+      <div class="icon"><i class="fas fa-cloud-upload-alt"></i></div>
+      <div class="file-name" id="depositFileName">انقر لرفع صورة التحويل</div>
+      <div class="file-hint">(jpg, png, max 30KB)</div>
+      <input type="file" id="depositFileInput" accept="image/*" style="display:none;" />
+    </div>
+
+    <!-- أزرار الإجراء -->
+    <button class="btn-submit-deposit" id="submitDepositBtn"><i class="fas fa-check"></i> إتمام الإيداع</button>
+    <button class="btn-cancel-deposit" id="cancelDepositBtn"><i class="fas fa-times"></i> إلغاء</button>
+  </div>
+</div>
+
+<!-- ===== APP CONTAINER ===== -->
+<div class="app-container" id="appContainer">
+
+  <!-- ===== AUTH SECTION ===== -->
+  <div id="authSection">
+    <div class="auth-header">
+      <div class="logo-icon"><i class="fas fa-wallet"></i></div>
+      <h1>GOOSIQ <span>WALLET</span></h1>
+      <p>محفظتك الإلكترونية الآمنة</p>
+    </div>
+    <div id="authForm">
+      <div class="form-group"><label>البريد الإلكتروني</label><input type="email" id="emailInput" placeholder="example@mail.com" /></div>
+      <div class="form-group"><label>كلمة المرور</label><input type="password" id="passwordInput" placeholder="••••••••" /></div>
+      <div id="signupFields" class="signup-fields">
+        <div class="form-group"><label>الاسم الثلاثي</label><input type="text" id="fullNameInput" placeholder="أحمد محمد علي" /></div>
+        <div class="form-group"><label>اسم المستخدم (إنجليزي، فريد)</label><input type="text" id="usernameInput" placeholder="ahmed_123" dir="ltr" /></div>
+        <div class="form-group"><label>رقم الهاتف <span style="font-weight:400;color:var(--primary-dark);">(077xxxxxxxx)</span></label><input type="tel" id="phoneInput" placeholder="07712345678" maxlength="11" dir="ltr" /></div>
+        <div class="form-group"><label>العنوان</label><textarea id="addressInput" placeholder="المدينة، الشارع..."></textarea></div>
+      </div>
+      <button class="btn-primary" id="actionBtn">تسجيل الدخول</button>
+      <div class="toggle-link">
+        <span id="toggleText">ليس لديك حساب؟</span>
+        <span id="toggleAction">إنشاء حساب جديد</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== APP MAIN ===== -->
+  <div class="app-main" id="appMain">
+    <div class="app-header">
+      <div class="brand">GOOSIQ <span>WALLET</span></div>
+      <div class="user-badge" id="userBadge">
+        <i class="fas fa-user-circle"></i>
+        <span id="headerUsername">مستخدم</span>
+      </div>
+    </div>
+
+    <!-- Completion Banner -->
+    <div class="profile-completion-banner" id="completionBanner">
+      <span class="banner-icon">📋</span>
+      لاستعمال محفظتك بشكل طبيعي يجب أن تقوم بإكمال معلومات ملفك الشخصي
+      <button class="complete-btn" id="goToCompletionBtn"><i class="fas fa-arrow-left"></i> إكمال الملف</button>
+    </div>
+
+    <div class="page-content" id="pageContent">
+      <!-- ===== USER PAGES ===== -->
+      <div class="page active" id="pageHome">
+        <div class="balance-card">
+          <div class="label">الرصيد الحالي</div>
+          <div class="balance" id="userBalance">0 <span>د.ع</span></div>
+          <div class="wallet-row">
+            <span style="opacity:0.7;">رقم المحفظة</span>
+            <span class="wallet-id" id="walletIdDisplay">G00000000</span>
+            <button class="copy-btn" id="copyWalletBtn" title="نسخ رقم المحفظة"><i class="fas fa-copy"></i></button>
+          </div>
+        </div>
+        <div class="action-buttons">
+          <button class="btn-action deposit" id="depositBtn" disabled><i class="fas fa-plus-circle"></i> إيداع</button>
+          <button class="btn-action withdraw" id="withdrawBtn" disabled><i class="fas fa-minus-circle"></i> سحب</button>
+        </div>
+        <div class="recent-title"><i class="fas fa-clock" style="color:var(--primary);"></i> آخر العمليات</div>
+        <div id="recentTransactions"><p style="color:var(--gray);text-align:center;padding:20px 0;">لا توجد عمليات حتى الآن</p></div>
+      </div>
+
+      <div class="page" id="pageCompletion">
+        <h2 style="font-size:20px; margin-bottom:16px; color:var(--secondary);"><i class="fas fa-user-edit" style="color:var(--primary);"></i> إكمال الملف الشخصي</h2>
+        <div class="completion-card">
+          <p style="color:var(--gray); margin-bottom:16px; font-size:15px;">يرجى اختيار طريقة سحب الأموال وإدخال المعلومات المطلوبة</p>
+          <div class="payment-method selected" id="paymentMethod">
+            <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRk-9frRdmbyzG5YY2TeDy6O1Yihi0WLWfrVk3fYWHw5w&s" alt="مصرف الرافدين" />
+            <div class="method-info"><div class="method-name">مصرف الرافدين (سوبر كي)</div><div class="method-desc">تحويل بنكي عبر تطبيق سوبر كي</div></div>
+            <span class="check-mark"><i class="fas fa-check-circle"></i></span>
+          </div>
+          <div class="form-group"><label>اسم صاحب البطاقة <span style="color:var(--danger);">*</span></label><input type="text" id="cardHolderName" placeholder="أدخل الاسم كما هو مكتوب على البطاقة" /></div>
+          <div class="form-group"><label>رقم الحساب في سوبر كي <span style="color:var(--danger);">*</span></label><input type="text" id="accountNumber" placeholder="أدخل رقم الحساب (8-12 رقم)" dir="ltr" maxlength="12" /><div class="form-hint">يجب أن يتكون من 8 إلى 12 رقمًا</div></div>
+          <button class="btn-complete" id="completeProfileBtn"><i class="fas fa-check"></i> إكمال الملف</button>
+        </div>
+      </div>
+
+      <div class="page" id="pagePending">
+        <div class="pending-card">
+          <div class="pending-icon"><i class="fas fa-clock"></i></div>
+          <h3>⏳ قيد المراجعة</h3>
+          <p>تم استلام طلبك بنجاح.<br />سيتم مراجعة معلوماتك من قبل فريق الدعم<br /><strong>من ساعة إلى 24 ساعة</strong><br /><br />سيتم إشعارك عند اكتمال المراجعة.</p>
+        </div>
+      </div>
+
+      <div class="page" id="pageProfile">
+        <h2 style="font-size:20px; margin-bottom:16px; color:var(--secondary);"><i class="fas fa-user-circle" style="color:var(--primary);"></i> معلوماتي الشخصية</h2>
+        <div class="profile-card" id="profileCard">
+          <div class="profile-item"><span class="label">الاسم الكامل</span><span class="value" id="profileFullName">-</span></div>
+          <div class="profile-item"><span class="label">اسم المستخدم</span><span class="value" id="profileUsername">-</span></div>
+          <div class="profile-item"><span class="label">البريد الإلكتروني</span><span class="value" id="profileEmail">-</span></div>
+          <div class="profile-item"><span class="label">رقم الهاتف</span><span class="value" id="profilePhone">-</span></div>
+          <div class="profile-item"><span class="label">العنوان</span><span class="value" id="profileAddress">-</span></div>
+          <div class="profile-item"><span class="label">رقم المحفظة</span><span class="value" id="profileWallet">-</span></div>
+          <div class="profile-item"><span class="label">طريقة السحب</span><span class="value" id="profilePaymentMethod">-</span></div>
+          <div class="profile-item"><span class="label">حالة التحقق</span><span class="value" id="profileStatus">-</span></div>
+          <div class="profile-item"><span class="label">عمليات الإيداع اليومية</span><span class="value" id="dailyDepositCount">0 / 5</span></div>
+        </div>
+      </div>
+
+      <div class="page" id="pageTransactions">
+        <h2 style="font-size:20px; margin-bottom:16px; color:var(--secondary);"><i class="fas fa-exchange-alt" style="color:var(--primary);"></i> جميع العمليات</h2>
+        <div class="transactions-list" id="allTransactions"><p style="color:var(--gray);text-align:center;padding:20px 0;">لا توجد عمليات مسجلة</p></div>
+      </div>
+
+      <!-- ===== ADMIN PAGES ===== -->
+      <div class="page" id="pageAdminHome">
+        <h2 style="font-size:20px; margin-bottom:16px; color:var(--secondary);"><i class="fas fa-chart-pie" style="color:var(--primary);"></i> لوحة التحكم</h2>
+        <div class="stats-grid">
+          <div class="stat-card blue"><div class="stat-icon">👥</div><div class="stat-number" id="statUsers">0</div><div class="stat-label">إجمالي المستخدمين</div></div>
+          <div class="stat-card green"><div class="stat-icon">📈</div><div class="stat-number" id="statDeposits">0</div><div class="stat-label">إجمالي الإيداعات</div></div>
+          <div class="stat-card orange"><div class="stat-icon">📉</div><div class="stat-number" id="statWithdrawals">0</div><div class="stat-label">إجمالي السحوبات</div></div>
+          <div class="stat-card purple"><div class="stat-icon">💳</div><div class="stat-number" id="statTotalBalance">0</div><div class="stat-label">إجمالي الأرصدة</div></div>
+        </div>
+        <div class="filter-section">
+          <select id="filterMonth"><option value="01">يناير</option><option value="02">فبراير</option><option value="03">مارس</option><option value="04">أبريل</option><option value="05">مايو</option><option value="06">يونيو</option><option value="07">يوليو</option><option value="08">أغسطس</option><option value="09">سبتمبر</option><option value="10">أكتوبر</option><option value="11">نوفمبر</option><option value="12">ديسمبر</option></select>
+          <select id="filterYear"><option value="2024">2024</option><option value="2025">2025</option><option value="2026">2026</option></select>
+          <button class="filter-btn" id="applyFilterBtn"><i class="fas fa-filter"></i> تطبيق</button>
+        </div>
+        <div style="background:#fff; border-radius:var(--radius-sm); padding:16px; box-shadow:var(--shadow);">
+          <p style="font-weight:700; color:var(--secondary); margin-bottom:8px;"><i class="fas fa-calendar-alt" style="color:var(--primary);"></i> إحصائيات الشهر المحدد</p>
+          <div style="display:flex; justify-content:space-around; text-align:center;">
+            <div><div style="font-size:13px; color:var(--gray);">الإيداعات</div><div style="font-size:20px; font-weight:900; color:var(--success);" id="monthDeposits">0 د.ع</div></div>
+            <div><div style="font-size:13px; color:var(--gray);">السحوبات</div><div style="font-size:20px; font-weight:900; color:var(--primary-dark);" id="monthWithdrawals">0 د.ع</div></div>
+            <div><div style="font-size:13px; color:var(--gray);">صافي</div><div style="font-size:20px; font-weight:900; color:var(--secondary);" id="monthNet">0 د.ع</div></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="page" id="pageAdminUsers">
+        <h2 style="font-size:20px; margin-bottom:16px; color:var(--secondary);"><i class="fas fa-users" style="color:var(--primary);"></i> إدارة المستخدمين</h2>
+        <div class="admin-search">
+          <input type="text" id="adminSearchInput" placeholder="🔍 بحث عن مستخدم (اسم، بريد، هاتف...)" />
+          <button class="search-btn" id="adminSearchBtn"><i class="fas fa-search"></i></button>
+        </div>
+        <div id="adminUserList" style="max-height:300px; overflow-y:auto; -webkit-overflow-scrolling: touch;"></div>
+      </div>
+
+      <div class="page" id="pageAdminVerifications">
+        <h2 style="font-size:20px; margin-bottom:16px; color:var(--secondary);"><i class="fas fa-file-signature" style="color:var(--primary);"></i> طلبات التوثيق</h2>
+        <div id="adminVerificationList"></div>
+      </div>
+
+      <div class="page" id="pageAdminTransactions">
+        <h2 style="font-size:20px; margin-bottom:16px; color:var(--secondary);"><i class="fas fa-exchange-alt" style="color:var(--primary);"></i> عمليات الإيداع والسحب</h2>
+        <div id="adminTransactionList"></div>
+      </div>
+    </div>
+
+    <!-- ===== BOTTOM NAV ===== -->
+    <div class="bottom-nav" id="bottomNav"></div>
+  </div>
+</div>
+
+<!-- ===== FIREBASE SDK ===== -->
+<script type="importmap">
+  {
+    "imports": {
+      "firebase/app": "https://www.gstatic.com/firebasejs/12.18.0/firebase-app.js",
+      "firebase/auth": "https://www.gstatic.com/firebasejs/12.18.0/firebase-auth.js",
+      "firebase/database": "https://www.gstatic.com/firebasejs/12.18.0/firebase-database.js"
+    }
+  }
+</script>
+
+<script type="module">
+  // ============================================================
+  //  IMPORTS
+  // ============================================================
+  import { initializeApp } from "firebase/app";
+  import {
+    getAuth,
+    createUserWithEmailAndPassword,
+    signInWithEmailAndPassword,
+    onAuthStateChanged,
+    signOut,
+    updateProfile
+  } from "firebase/auth";
+  import { getDatabase, ref, set, get, onValue, update, push, remove } from "firebase/database";
+
+  // ============================================================
+  //  FIREBASE CONFIG
+  // ============================================================
+  const firebaseConfig = {
+    apiKey: "AIzaSyBSo7G18kfFr-Rc48AD-IWk7APqXk33X-o",
+    authDomain: "asaiseel.firebaseapp.com",
+    databaseURL: "https://asaiseel-default-rtdb.firebaseio.com",
+    projectId: "asaiseel",
+    storageBucket: "asaiseel.firebasestorage.app",
+    messagingSenderId: "1044352875279",
+    appId: "1:1044352875279:web:f67a378862d5010d2c5c7a",
+    measurementId: "G-9F2T849TMK"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
+  const database = getDatabase(app);
+
+  // ============================================================
+  //  DOM REFS
+  // ============================================================
+  // Auth
+  const authSection = document.getElementById('authSection');
+  const appMain = document.getElementById('appMain');
+  const emailInput = document.getElementById('emailInput');
+  const passwordInput = document.getElementById('passwordInput');
+  const fullNameInput = document.getElementById('fullNameInput');
+  const usernameInput = document.getElementById('usernameInput');
+  const phoneInput = document.getElementById('phoneInput');
+  const addressInput = document.getElementById('addressInput');
+  const signupFields = document.getElementById('signupFields');
+  const actionBtn = document.getElementById('actionBtn');
+  const toggleText = document.getElementById('toggleText');
+  const toggleAction = document.getElementById('toggleAction');
+  const headerUsername = document.getElementById('headerUsername');
+  const userBadge = document.getElementById('userBadge');
+  const bottomNav = document.getElementById('bottomNav');
+  const completionBanner = document.getElementById('completionBanner');
+  const goToCompletionBtn = document.getElementById('goToCompletionBtn');
+  const completeProfileBtn = document.getElementById('completeProfileBtn');
+  const cardHolderName = document.getElementById('cardHolderName');
+  const accountNumber = document.getElementById('accountNumber');
+  const copyWalletBtn = document.getElementById('copyWalletBtn');
+  const depositBtn = document.getElementById('depositBtn');
+  const withdrawBtn = document.getElementById('withdrawBtn');
+  const userBalance = document.getElementById('userBalance');
+  const walletIdDisplay = document.getElementById('walletIdDisplay');
+  const recentTransactions = document.getElementById('recentTransactions');
+  const allTransactions = document.getElementById('allTransactions');
+  const profileFullName = document.getElementById('profileFullName');
+  const profileUsername = document.getElementById('profileUsername');
+  const profileEmail = document.getElementById('profileEmail');
+  const profilePhone = document.getElementById('profilePhone');
+  const profileAddress = document.getElementById('profileAddress');
+  const profileWallet = document.getElementById('profileWallet');
+  const profilePaymentMethod = document.getElementById('profilePaymentMethod');
+  const profileStatus = document.getElementById('profileStatus');
+  const dailyDepositCount = document.getElementById('dailyDepositCount');
+
+  // Deposit Modal
+  const depositModal = document.getElementById('depositModal');
+  const depositFromPhone = document.getElementById('depositFromPhone');
+  const depositAmount = document.getElementById('depositAmount');
+  const depositCode = document.getElementById('depositCode');
+  const depositNet = document.getElementById('depositNet');
+  const depositFileUpload = document.getElementById('depositFileUpload');
+  const depositFileInput = document.getElementById('depositFileInput');
+  const depositFileName = document.getElementById('depositFileName');
+  const submitDepositBtn = document.getElementById('submitDepositBtn');
+  const cancelDepositBtn = document.getElementById('cancelDepositBtn');
+  const copyDepositCode = document.getElementById('copyDepositCode');
+  const depositMinusBtn = document.getElementById('depositMinusBtn');
+  const depositPlusBtn = document.getElementById('depositPlusBtn');
+
+  // Admin
+  const statUsers = document.getElementById('statUsers');
+  const statDeposits = document.getElementById('statDeposits');
+  const statWithdrawals = document.getElementById('statWithdrawals');
+  const statTotalBalance = document.getElementById('statTotalBalance');
+  const monthDeposits = document.getElementById('monthDeposits');
+  const monthWithdrawals = document.getElementById('monthWithdrawals');
+  const monthNet = document.getElementById('monthNet');
+  const filterMonth = document.getElementById('filterMonth');
+  const filterYear = document.getElementById('filterYear');
+  const applyFilterBtn = document.getElementById('applyFilterBtn');
+  const adminSearchInput = document.getElementById('adminSearchInput');
+  const adminSearchBtn = document.getElementById('adminSearchBtn');
+  const adminUserList = document.getElementById('adminUserList');
+  const adminVerificationList = document.getElementById('adminVerificationList');
+  const adminTransactionList = document.getElementById('adminTransactionList');
+  const editModal = document.getElementById('editModal');
+  const editFullName = document.getElementById('editFullName');
+  const editUsername = document.getElementById('editUsername');
+  const editEmail = document.getElementById('editEmail');
+  const editPhone = document.getElementById('editPhone');
+  const editAddress = document.getElementById('editAddress');
+  const editBalance = document.getElementById('editBalance');
+  const editVerificationStatus = document.getElementById('editVerificationStatus');
+  const saveEditBtn = document.getElementById('saveEditBtn');
+  const cancelEditBtn = document.getElementById('cancelEditBtn');
+
+  // ============================================================
+  //  STATE
+  // ============================================================
+  let currentUser = null;
+  let currentUserData = null;
+  let isAdmin = false;
+  let toastTimeout = null;
+  let editingUid = null;
+  let allUsers = {};
+  let allTransactionsData = {};
+  let selectedFile = null;
+
+  const TO_PHONE = '07732773761';
+  const DAILY_LIMIT = 5;
+  const MIN_AMOUNT = 10000;
+  const MAX_AMOUNT = 60000;
+
+  // ============================================================
+  //  HELPERS
+  // ============================================================
+  function sanitizeKey(str) { return str.replace(/\./g, '_dot_').replace(/@/g, '_at_'); }
+
+  function showToast(message, type = 'error') {
+    const container = document.getElementById('toastContainer');
+    container.innerHTML = '';
+    const toast = document.createElement('div');
+    toast.className = `toast ${type === 'success' ? 'success' : ''}`;
+    toast.innerHTML = `
+      <span class="close-toast" onclick="this.parentElement.remove()">✕</span>
+      ${message}
+    `;
+    container.appendChild(toast);
+    if (toastTimeout) clearTimeout(toastTimeout);
+    toastTimeout = setTimeout(() => {
+      if (toast.parentElement) toast.remove();
+    }, 5000);
+  }
+
+  function clearToast() {
+    const container = document.getElementById('toastContainer');
+    container.innerHTML = '';
+    if (toastTimeout) { clearTimeout(toastTimeout); toastTimeout = null; }
+  }
+
+  function isAdminEmail(email) { return email && email.toLowerCase().endsWith('@admin.com'); }
+
+  function formatCurrency(amount) { return Number(amount).toFixed(2) + ' د.ع'; }
+
+  function isValidUsername(str) { return /^[a-zA-Z0-9_]{3,20}$/.test(str); }
+  function hasThreeNames(str) { return str.trim().split(/\s+/).length >= 3; }
+  function isValidPhone(str) { return /^077\d{8}$/.test(str); }
+  function isValidAccountNumber(str) { return /^\d{8,12}$/.test(str); }
+
+  function generateDepositCode(amount) {
+    return `*123*${amount}*${TO_PHONE}#`;
+  }
+
+  // ============================================================
+  //  DATABASE HELPERS
+  // ============================================================
+  async function isFieldUnique(path, value) {
+    if (!value) return false;
+    let key = value.toLowerCase();
+    if (path === 'emails') key = sanitizeKey(key);
+    const refPath = ref(database, path + '/' + key);
+    try {
+      const snap = await get(refPath);
+      return !snap.exists();
+    } catch (e) {
+      if (e.message.includes('permission_denied')) return true;
+      showToast('حدث خطأ في التحقق من البيانات.', 'error');
+      return false;
+    }
+  }
+
+  async function generateUniqueWalletId() {
+    for (let i = 0; i < 10; i++) {
+      const num = Math.floor(10000000 + Math.random() * 90000000);
+      const wid = 'G' + num;
+      const snap = await get(ref(database, 'wallets/' + wid));
+      if (!snap.exists()) return wid;
+    }
+    return 'G' + Date.now().toString().slice(-8);
+  }
+
+  // ============================================================
+  //  COMPRESS IMAGE (max 30KB)
+  // ============================================================
+  async function compressImage(file, maxSizeKB = 30) {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        const img = new Image();
+        img.onload = function() {
+          const canvas = document.createElement('canvas');
+          let width = img.width;
+          let height = img.height;
+          let quality = 0.9;
+          let compressedDataUrl;
+
+          const compress = () => {
+            canvas.width = width;
+            canvas.height = height;
+            const ctx = canvas.getContext('2d');
+            ctx.drawImage(img, 0, 0, width, height);
+            compressedDataUrl = canvas.toDataURL('image/jpeg', quality);
+            const sizeInKB = Math.round((compressedDataUrl.length * 3/4) / 1024);
+            if (sizeInKB > maxSizeKB && quality > 0.1) {
+              quality -= 0.05;
+              if (quality < 0.1) quality = 0.1;
+              compress();
+            } else {
+              fetch(compressedDataUrl)
+                .then(res => res.blob())
+                .then(blob => resolve(blob))
+                .catch(reject);
+            }
+          };
+          compress();
+        };
+        img.onerror = reject;
+        img.src = e.target.result;
+      };
+      reader.onerror = reject;
+      reader.readAsDataURL(file);
+    });
+  }
+
+  // ============================================================
+  //  AUTH UI
+  // ============================================================
+  function toggleAuthMode() {
+    const isLogin = actionBtn.textContent === 'تسجيل الدخول';
+    if (isLogin) {
+      actionBtn.textContent = 'إنشاء حساب';
+      toggleText.textContent = 'لديك حساب بالفعل؟';
+      toggleAction.textContent = 'تسجيل الدخول';
+      signupFields.classList.add('visible');
+    } else {
+      actionBtn.textContent = 'تسجيل الدخول';
+      toggleText.textContent = 'ليس لديك حساب؟';
+      toggleAction.textContent = 'إنشاء حساب جديد';
+      signupFields.classList.remove('visible');
+    }
+    clearToast();
+    document.querySelectorAll('.error').forEach(el => el.classList.remove('error'));
+  }
+  toggleAction.addEventListener('click', toggleAuthMode);
+
+  // Blur validations
+  fullNameInput.addEventListener('blur', () => {
+    const val = fullNameInput.value.trim();
+    if (val && !hasThreeNames(val)) {
+      fullNameInput.classList.add('error');
+      showToast('⚠️ الاسم يجب أن يتكون من 3 أسماء على الأقل.', 'error');
+    } else fullNameInput.classList.remove('error');
+  });
+  usernameInput.addEventListener('blur', () => {
+    const val = usernameInput.value.trim();
+    if (val && !isValidUsername(val)) {
+      usernameInput.classList.add('error');
+      showToast('⚠️ اسم المستخدم إنجليزي (حروف، أرقام، _) وطوله 3-20.', 'error');
+    } else usernameInput.classList.remove('error');
+  });
+  phoneInput.addEventListener('blur', () => {
+    const val = phoneInput.value.trim();
+    if (val && !isValidPhone(val)) {
+      phoneInput.classList.add('error');
+      showToast('⚠️ رقم الهاتف يجب أن يبدأ بـ 077 ويتكون من 11 رقمًا.', 'error');
+    } else phoneInput.classList.remove('error');
+  });
+  phoneInput.addEventListener('keydown', (e) => {
+    if (!/^[0-9]$/.test(e.key) && !['Backspace','Delete','Tab','Escape','Enter','ArrowLeft','ArrowRight','ArrowUp','ArrowDown','Home','End'].includes(e.key)) {
+      e.preventDefault();
+      showToast('⚠️ يُسمح فقط بالأرقام.', 'error');
+    }
+  });
+  accountNumber.addEventListener('input', () => {
+    const val = accountNumber.value.trim();
+    if (val && !/^\d*$/.test(val)) accountNumber.value = val.replace(/\D/g, '');
+    if (val && !isValidAccountNumber(val)) accountNumber.classList.add('error');
+    else accountNumber.classList.remove('error');
+  });
+
+  // ============================================================
+  //  AUTH ACTIONS
+  // ============================================================
+  actionBtn.addEventListener('click', async () => {
+    const email = emailInput.value.trim();
+    const password = passwordInput.value.trim();
+    clearToast();
+
+    if (!email || !password) {
+      showToast('الرجاء ملء البريد وكلمة المرور.', 'error');
+      return;
+    }
+
+    const isLoginMode = actionBtn.textContent === 'تسجيل الدخول';
+
+    if (isLoginMode) {
+      try {
+        await signInWithEmailAndPassword(auth, email, password);
+      } catch (err) {
+        let msg = err.message;
+        if (err.code === 'auth/user-not-found') msg = 'البريد غير مسجل.';
+        else if (err.code === 'auth/wrong-password') msg = 'كلمة المرور غير صحيحة.';
+        else if (err.code === 'auth/too-many-requests') msg = 'محاولات كثيرة، حاول لاحقاً.';
+        showToast(msg, 'error');
+      }
+      return;
+    }
+
+    // Sign up
+    const fullName = fullNameInput.value.trim();
+    const username = usernameInput.value.trim();
+    const phone = phoneInput.value.trim();
+    const address = addressInput.value.trim();
+
+    if (!fullName || !username || !phone || !address) {
+      showToast('الرجاء ملء جميع الحقول.', 'error');
+      return;
+    }
+    if (!hasThreeNames(fullName)) { showToast('⚠️ الاسم يجب أن يكون ثلاثي.', 'error'); return; }
+    if (!isValidUsername(username)) { showToast('⚠️ اسم المستخدم غير صالح.', 'error'); return; }
+    if (isAdminEmail(email)) { showToast('⚠️ لا يمكن استخدام بريد إدمن للتسجيل.', 'error'); return; }
+    if (!isValidPhone(phone)) { showToast('⚠️ رقم الهاتف غير صحيح.', 'error'); return; }
+    if (password.length < 6) { showToast('كلمة المرور 6 أحرف على الأقل.', 'error'); return; }
+
+    const isUUnique = await isFieldUnique('usernames', username);
+    if (!isUUnique) { showToast('⚠️ اسم المستخدم مستخدم بالفعل.', 'error'); return; }
+    const isEUnique = await isFieldUnique('emails', email);
+    if (!isEUnique) { showToast('⚠️ البريد الإلكتروني مستخدم.', 'error'); return; }
+    const isPUnique = await isFieldUnique('phones', phone);
+    if (!isPUnique) { showToast('⚠️ رقم الهاتف مستخدم.', 'error'); return; }
+
+    try {
+      const cred = await createUserWithEmailAndPassword(auth, email, password);
+      const user = cred.user;
+      await updateProfile(user, { displayName: fullName });
+
+      const walletId = await generateUniqueWalletId();
+      const userRef = ref(database, 'users/' + user.uid);
+      await set(userRef, {
+        fullName, username, email, phone, address, walletId,
+        balance: 0,
+        role: 'user',
+        verificationStatus: 'pending',
+        dailyDepositCount: 0,
+        lastDepositDate: new Date().toISOString().split('T')[0],
+        createdAt: new Date().toISOString()
+      });
+
+      const emailKey = sanitizeKey(email.toLowerCase());
+      await update(ref(database), {
+        ['usernames/' + username.toLowerCase()]: user.uid,
+        ['emails/' + emailKey]: user.uid,
+        ['phones/' + phone]: user.uid,
+        ['wallets/' + walletId]: user.uid
+      });
+
+      showToast('✅ تم إنشاء الحساب بنجاح!', 'success');
+    } catch (err) {
+      let msg = err.message;
+      if (err.code === 'auth/email-already-in-use') msg = 'البريد مستخدم بالفعل.';
+      else if (err.code === 'auth/weak-password') msg = 'كلمة المرور ضعيفة.';
+      showToast('فشل إنشاء الحساب: ' + msg, 'error');
+    }
+  });
+
+  // ============================================================
+  //  COPY WALLET ID
+  // ============================================================
+  copyWalletBtn.addEventListener('click', () => {
+    const text = walletIdDisplay.textContent;
+    if (text && text !== 'G00000000') {
+      navigator.clipboard.writeText(text).then(() => {
+        showToast('✅ تم نسخ رقم المحفظة!', 'success');
+      }).catch(() => {
+        const input = document.createElement('input');
+        input.value = text;
+        document.body.appendChild(input);
+        input.select();
+        document.execCommand('copy');
+        input.remove();
+        showToast('✅ تم نسخ رقم المحفظة!', 'success');
+      });
+    }
+  });
+
+  // ============================================================
+  //  COMPLETE PROFILE
+  // ============================================================
+  completeProfileBtn.addEventListener('click', async () => {
+    if (!currentUser) return;
+    if (currentUserData) {
+      const status = currentUserData.verificationStatus;
+      if (status === 'pending') {
+        showToast('⏳ لديك طلب قيد المراجعة، يرجى الانتظار.', 'error');
+        return;
+      }
+      if (status === 'approved') {
+        showToast('✅ حسابك مفعّل بالفعل.', 'error');
+        return;
+      }
+    }
+
+    const holderName = cardHolderName.value.trim();
+    const accountNum = accountNumber.value.trim();
+
+    if (!holderName) {
+      showToast('⚠️ يرجى إدخال اسم صاحب البطاقة.', 'error');
+      cardHolderName.classList.add('error');
+      return;
+    }
+    cardHolderName.classList.remove('error');
+
+    if (!isValidAccountNumber(accountNum)) {
+      showToast('⚠️ رقم الحساب يجب أن يتكون من 8 إلى 12 رقمًا.', 'error');
+      accountNumber.classList.add('error');
+      return;
+    }
+    accountNumber.classList.remove('error');
+
+    try {
+      const userRef = ref(database, 'users/' + currentUser.uid);
+      await update(userRef, {
+        cardHolderName: holderName,
+        accountNumber: accountNum,
+        paymentMethod: 'مصرف الرافدين (سوبر كي)',
+        verificationStatus: 'pending'
+      });
+
+      const pendingRef = ref(database, 'pendingVerifications/' + currentUser.uid);
+      await set(pendingRef, {
+        uid: currentUser.uid,
+        fullName: currentUserData?.fullName || '',
+        username: currentUserData?.username || '',
+        email: currentUserData?.email || '',
+        phone: currentUserData?.phone || '',
+        cardHolderName: holderName,
+        accountNumber: accountNum,
+        paymentMethod: 'مصرف الرافدين (سوبر كي)',
+        submittedAt: new Date().toISOString(),
+        status: 'pending'
+      });
+
+      showToast('✅ تم إرسال طلب التحقق بنجاح!', 'success');
+      if (currentUserData) {
+        currentUserData.verificationStatus = 'pending';
+        currentUserData.cardHolderName = holderName;
+        currentUserData.accountNumber = accountNum;
+        currentUserData.paymentMethod = 'مصرف الرافدين (سوبر كي)';
+      }
+      updateUserUI(currentUserData);
+    } catch (err) {
+      showToast('فشل إرسال الطلب: ' + err.message, 'error');
+    }
+  });
+
+  // ============================================================
+  //  DEPOSIT MODAL
+  // ============================================================
+  function openDepositModal() {
+    if (!currentUser || !currentUserData) return;
+    if (currentUserData.verificationStatus !== 'approved') {
+      showToast('⚠️ يجب أن تكون موافقاً على التحقق أولاً.', 'error');
+      return;
+    }
+    const today = new Date().toISOString().split('T')[0];
+    const lastDate = currentUserData.lastDepositDate || '';
+    let count = currentUserData.dailyDepositCount || 0;
+    if (lastDate !== today) count = 0;
+    if (count >= DAILY_LIMIT) {
+      showToast(`⚠️ لقد تجاوزت الحد اليومي (${DAILY_LIMIT} عمليات).`, 'error');
+      return;
+    }
+
+    depositFromPhone.textContent = currentUserData.phone || 'غير محدد';
+    depositAmount.value = 10000;
+    selectedFile = null;
+    depositFileName.textContent = 'انقر لرفع صورة التحويل';
+    depositFileInput.value = '';
+    submitDepositBtn.disabled = false;
+    submitDepositBtn.innerHTML = '<i class="fas fa-check"></i> إتمام الإيداع';
+    updateDepositUI();
+    depositModal.classList.add('active');
+  }
+
+  function closeDepositModal() {
+    depositModal.classList.remove('active');
+    selectedFile = null;
+    depositFileInput.value = '';
+    depositFileName.textContent = 'انقر لرفع صورة التحويل';
+  }
+
+  function updateDepositUI() {
+    const amount = parseInt(depositAmount.value) || 10000;
+    const code = generateDepositCode(amount);
+    depositCode.textContent = code;
+    depositNet.textContent = amount.toLocaleString() + ' د.ع';
+  }
+
+  depositAmount.addEventListener('input', () => {
+    let val = parseInt(depositAmount.value) || 10000;
+    if (val < MIN_AMOUNT) val = MIN_AMOUNT;
+    if (val > MAX_AMOUNT) val = MAX_AMOUNT;
+    depositAmount.value = val;
+    updateDepositUI();
+  });
+
+  depositMinusBtn.addEventListener('click', () => {
+    let val = parseInt(depositAmount.value) || 10000;
+    if (val > MIN_AMOUNT) val -= 1000;
+    if (val < MIN_AMOUNT) val = MIN_AMOUNT;
+    depositAmount.value = val;
+    updateDepositUI();
+  });
+
+  depositPlusBtn.addEventListener('click', () => {
+    let val = parseInt(depositAmount.value) || 10000;
+    if (val < MAX_AMOUNT) val += 1000;
+    if (val > MAX_AMOUNT) val = MAX_AMOUNT;
+    depositAmount.value = val;
+    updateDepositUI();
+  });
+
+  // Copy deposit code
+  copyDepositCode.addEventListener('click', () => {
+    const code = depositCode.textContent;
+    if (code) {
+      navigator.clipboard.writeText(code).then(() => {
+        showToast('✅ تم نسخ الكود!', 'success');
+      }).catch(() => {
+        const input = document.createElement('input');
+        input.value = code;
+        document.body.appendChild(input);
+        input.select();
+        document.execCommand('copy');
+        input.remove();
+        showToast('✅ تم نسخ الكود!', 'success');
+      });
+    }
+  });
+
+  // File upload with compression
+  depositFileUpload.addEventListener('click', () => depositFileInput.click());
+  depositFileInput.addEventListener('change', async (e) => {
+    if (e.target.files.length > 0) {
+      const file = e.target.files[0];
+      try {
+        const compressedBlob = await compressImage(file, 30);
+        const compressedFile = new File([compressedBlob], file.name, { type: 'image/jpeg' });
+        selectedFile = compressedFile;
+        depositFileName.textContent = `✅ ${file.name} (${Math.round(compressedBlob.size/1024)} KB)`;
+      } catch (err) {
+        showToast('فشل ضغط الصورة: ' + err.message, 'error');
+        selectedFile = null;
+        depositFileName.textContent = '❌ فشل الضغط، حاول مرة أخرى';
+      }
+    } else {
+      selectedFile = null;
+      depositFileName.textContent = 'انقر لرفع صورة التحويل';
+    }
+  });
+
+  // Submit deposit
+  submitDepositBtn.addEventListener('click', async () => {
+    if (!currentUser || !currentUserData) return;
+
+    const amount = parseInt(depositAmount.value) || 0;
+    if (amount < MIN_AMOUNT || amount > MAX_AMOUNT) {
+      showToast(`⚠️ المبلغ يجب أن يكون بين ${MIN_AMOUNT.toLocaleString()} و ${MAX_AMOUNT.toLocaleString()} د.ع.`, 'error');
+      return;
+    }
+
+    if (!selectedFile) {
+      showToast('⚠️ يرجى رفع صورة عملية التحويل.', 'error');
+      return;
+    }
+
+    const today = new Date().toISOString().split('T')[0];
+    const lastDate = currentUserData.lastDepositDate || '';
+    let count = currentUserData.dailyDepositCount || 0;
+    if (lastDate !== today) count = 0;
+    if (count >= DAILY_LIMIT) {
+      showToast(`⚠️ لقد تجاوزت الحد اليومي (${DAILY_LIMIT} عمليات).`, 'error');
+      return;
+    }
+
+    submitDepositBtn.disabled = true;
+    submitDepositBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> جاري الإرسال...';
+
+    try {
+      // Upload image to Cloudflare Worker
+      const formData = new FormData();
+      formData.append('file', selectedFile);
+      const response = await fetch('https://misty-math-b171.mojtabakareem77.workers.dev/', {
+        method: 'POST',
+        body: formData
+      });
+      if (!response.ok) throw new Error('فشل رفع الصورة: ' + response.status);
+      const data = await response.json();
+      const imageUrl = data.url || data.fileUrl || data.location;
+
+      const code = depositCode.textContent;
+
+      const txRef = ref(database, 'transactions/' + currentUser.uid);
+      const newTxRef = push(txRef);
+      await set(newTxRef, {
+        type: 'deposit',
+        amount: amount,
+        netAmount: amount,
+        code: code,
+        fromPhone: currentUserData.phone,
+        toPhone: TO_PHONE,
+        imageUrl: imageUrl,
+        date: new Date().toISOString(),
+        status: 'pending',
+        adminStatus: 'pending',
+        adminNote: null
+      });
+
+      const newCount = count + 1;
+      await update(ref(database, 'users/' + currentUser.uid), {
+        dailyDepositCount: newCount,
+        lastDepositDate: today
+      });
+
+      showToast('✅ تم إرسال طلب الإيداع بنجاح! سيتم مراجعته خلال 1-24 ساعة.', 'success');
+      closeDepositModal();
+      if (currentUserData) {
+        currentUserData.dailyDepositCount = newCount;
+        currentUserData.lastDepositDate = today;
+        updateUserUI(currentUserData);
+      }
+    } catch (err) {
+      showToast('فشل إرسال الطلب: ' + err.message, 'error');
+      submitDepositBtn.disabled = false;
+      submitDepositBtn.innerHTML = '<i class="fas fa-check"></i> إتمام الإيداع';
+    }
+  });
+
+  cancelDepositBtn.addEventListener('click', closeDepositModal);
+  depositModal.addEventListener('click', (e) => {
+    if (e.target === depositModal) closeDepositModal();
+  });
+
+  // ============================================================
+  //  WITHDRAW
+  // ============================================================
+  async function handleWithdraw() {
+    if (!currentUser) return;
+    if (currentUserData?.verificationStatus !== 'approved') {
+      showToast('⚠️ يجب أن يتم الموافقة على طلب التحقق أولاً.', 'error');
+      return;
+    }
+
+    const amount = prompt('أدخل المبلغ (د.ع) للسحب:');
+    if (!amount) return;
+    const num = parseFloat(amount);
+    if (isNaN(num) || num <= 0) {
+      showToast('⚠️ المبلغ غير صحيح.', 'error');
+      return;
+    }
+    const balance = currentUserData?.balance || 0;
+    if (num > balance) {
+      showToast('⚠️ الرصيد غير كافٍ.', 'error');
+      return;
+    }
+
+    try {
+      const userRef = ref(database, 'users/' + currentUser.uid);
+      const newBalance = balance - num;
+      const txRef = ref(database, 'transactions/' + currentUser.uid);
+      const newTxRef = push(txRef);
+      await update(userRef, { balance: newBalance });
+      await set(newTxRef, {
+        type: 'withdraw',
+        amount: num,
+        date: new Date().toISOString(),
+        status: 'completed',
+        adminStatus: 'approved',
+        fromPhone: currentUserData.phone,
+        toPhone: 'GOOSIQ'
+      });
+      showToast(`✅ تم سحب المبلغ بنجاح!`, 'success');
+    } catch (err) {
+      showToast('فشلت العملية: ' + err.message, 'error');
+    }
+  }
+
+  depositBtn.addEventListener('click', openDepositModal);
+  withdrawBtn.addEventListener('click', handleWithdraw);
+
+  // ============================================================
+  //  LOGOUT
+  // ============================================================
+  async function logout() {
+    try {
+      await signOut(auth);
+      showToast('تم تسجيل الخروج.', 'success');
+    } catch (err) {
+      showToast('خطأ في تسجيل الخروج.', 'error');
+    }
+  }
+
+  // ============================================================
+  //  NAVIGATION
+  // ============================================================
+  function navigateTo(pageId) {
+    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+    const target = document.getElementById(pageId);
+    if (target) target.classList.add('active');
+    document.querySelectorAll('.bottom-nav .nav-item').forEach(btn => {
+      const targetPage = btn.dataset.target;
+      btn.classList.toggle('active', targetPage === pageId);
+    });
+    // Scroll to top when navigating
+    document.getElementById('pageContent').scrollTop = 0;
+  }
+
+  // ============================================================
+  //  BUILD BOTTOM NAV
+  // ============================================================
+  function buildNavbar(isAdmin) {
+    bottomNav.innerHTML = '';
+    const items = isAdmin ? [
+      { icon: 'fa-home', label: 'الرئيسية', target: 'pageAdminHome' },
+      { icon: 'fa-users', label: 'المستخدمين', target: 'pageAdminUsers' },
+      { icon: 'fa-file-signature', label: 'التوثيق', target: 'pageAdminVerifications' },
+      { icon: 'fa-exchange-alt', label: 'المعاملات', target: 'pageAdminTransactions' },
+      { icon: 'fa-sign-out-alt', label: 'خروج', target: 'logout', class: 'logout-btn' }
+    ] : [
+      { icon: 'fa-home', label: 'الرئيسية', target: 'pageHome' },
+      { icon: 'fa-user', label: 'الملف', target: 'pageProfile' },
+      { icon: 'fa-exchange-alt', label: 'العمليات', target: 'pageTransactions' },
+      { icon: 'fa-sign-out-alt', label: 'خروج', target: 'logout', class: 'logout-btn' }
+    ];
+
+    items.forEach(item => {
+      const btn = document.createElement('button');
+      btn.className = `nav-item ${item.class || ''}`;
+      btn.innerHTML = `<i class="fas ${item.icon}"></i><span>${item.label}</span>`;
+      if (item.target === 'logout') {
+        btn.addEventListener('click', logout);
+      } else {
+        btn.dataset.target = item.target;
+        btn.addEventListener('click', () => navigateTo(item.target));
+      }
+      bottomNav.appendChild(btn);
+    });
+    const firstBtn = bottomNav.querySelector('.nav-item:not(.logout-btn)');
+    if (firstBtn) firstBtn.classList.add('active');
+  }
+
+  // ============================================================
+  //  UPDATE USER UI
+  // ============================================================
+  function updateUserUI(data) {
+    if (!data) return;
+
+    const status = data.verificationStatus || 'pending';
+    const isApproved = status === 'approved';
+    const isPending = status === 'pending';
+    const isRejected = status === 'rejected';
+
+    userBalance.innerHTML = (data.balance || 0).toFixed(2) + ' <span>د.ع</span>';
+    walletIdDisplay.textContent = data.walletId || 'G00000000';
+    headerUsername.textContent = data.username || 'مستخدم';
+
+    profileFullName.textContent = data.fullName || '-';
+    profileUsername.textContent = data.username || '-';
+    profileEmail.textContent = data.email || '-';
+    profilePhone.textContent = data.phone || '-';
+    profileAddress.textContent = data.address || '-';
+    profileWallet.textContent = data.walletId || '-';
+    profilePaymentMethod.textContent = data.paymentMethod || 'غير محدد';
+
+    const statusMap = {
+      'pending': '⏳ قيد المراجعة',
+      'approved': '✅ تم الموافقة',
+      'rejected': '❌ مرفوض'
+    };
+    profileStatus.textContent = statusMap[status] || 'غير محدد';
+
+    const today = new Date().toISOString().split('T')[0];
+    const lastDate = data.lastDepositDate || '';
+    let count = data.dailyDepositCount || 0;
+    if (lastDate !== today) count = 0;
+    dailyDepositCount.textContent = `${count} / ${DAILY_LIMIT}`;
+
+    if (data.paymentMethod && (status === 'pending' || status === 'approved')) {
+      completionBanner.style.display = 'none';
+    } else {
+      completionBanner.style.display = 'block';
+    }
+
+    depositBtn.disabled = !isApproved;
+    withdrawBtn.disabled = !isApproved;
+
+    const currentPage = document.querySelector('.page.active');
+    if (isApproved) {
+      if (currentPage && (currentPage.id === 'pageCompletion' || currentPage.id === 'pagePending')) {
+        navigateTo('pageHome');
+      }
+    } else if (isPending && data.paymentMethod) {
+      if (currentPage && currentPage.id !== 'pagePending') {
+        navigateTo('pagePending');
+      }
+    } else if (isRejected) {
+      showToast('❌ تم رفض طلب التحقق. يرجى إعادة إدخال المعلومات.', 'error');
+      navigateTo('pageCompletion');
+    }
+  }
+
+  // ============================================================
+  //  LOAD USER DATA
+  // ============================================================
+  function loadUserData(uid) {
+    const userRef = ref(database, 'users/' + uid);
+    onValue(userRef, (snap) => {
+      const data = snap.val();
+      if (data) {
+        currentUserData = data;
+        updateUserUI(data);
+      }
+    });
+
+    const txRef = ref(database, 'transactions/' + uid);
+    onValue(txRef, (snap) => {
+      const txData = snap.val();
+      renderUserTransactions(txData);
+    });
+  }
+
+  function renderUserTransactions(txData) {
+    const renderList = (container, limit = 0) => {
+      container.innerHTML = '';
+      if (!txData) {
+        container.innerHTML = '<p style="color:#95a5a6;text-align:center;padding:20px 0;">لا توجد عمليات</p>';
+        return;
+      }
+      const entries = Object.entries(txData);
+      entries.sort((a, b) => (b[1].date || '').localeCompare(a[1].date || ''));
+      const list = limit > 0 ? entries.slice(0, limit) : entries;
+      if (list.length === 0) {
+        container.innerHTML = '<p style="color:#95a5a6;text-align:center;padding:20px 0;">لا توجد عمليات</p>';
+        return;
+      }
+      list.forEach(([key, tx]) => {
+        const div = document.createElement('div');
+        div.className = `transaction-item ${tx.type === 'withdraw' ? 'withdraw' : ''}`;
+        const isDeposit = tx.type === 'deposit';
+        let statusText = '';
+        if (tx.adminStatus === 'pending') statusText = '⏳ قيد المراجعة';
+        else if (tx.adminStatus === 'approved') statusText = '✅ مقبولة';
+        else if (tx.adminStatus === 'rejected') statusText = '❌ مرفوضة';
+        let note = tx.adminNote ? `<br><span style="font-size:11px; color:var(--danger);">السبب: ${tx.adminNote}</span>` : '';
+        div.innerHTML = `
+          <div class="tx-info">
+            <span class="tx-type">${isDeposit ? '💰 إيداع' : '💸 سحب'}</span>
+            <span class="tx-date">${new Date(tx.date).toLocaleString('ar-EG')}</span>
+            ${statusText ? `<span style="font-size:11px; color:var(--gray);">${statusText}</span>` : ''}
+            ${note}
+            ${tx.code ? `<span style="font-size:11px; color:#555;">كود: ${tx.code}</span>` : ''}
+          </div>
+          <span class="tx-amount ${isDeposit ? 'positive' : 'negative'}">${isDeposit ? '+' : '-'}${tx.amount.toFixed(2)} د.ع</span>
+        `;
+        container.appendChild(div);
+      });
+    };
+
+    renderList(recentTransactions, 5);
+    renderList(allTransactions);
+  }
+
+  // ============================================================
+  //  ADMIN FUNCTIONS
+  // ============================================================
+  function loadAdminData() {
+    const usersRef = ref(database, 'users');
+    onValue(usersRef, (snap) => {
+      allUsers = snap.val() || {};
+      renderAdminUsers(adminSearchInput.value);
+      renderAdminVerifications();
+      updateAdminStats();
+    });
+
+    const txRef = ref(database, 'transactions');
+    onValue(txRef, (snap) => {
+      allTransactionsData = snap.val() || {};
+      renderAdminTransactions();
+      updateAdminStats();
+    });
+  }
+
+  function renderAdminUsers(filter = '') {
+    const usersArray = Object.keys(allUsers).map(uid => ({ uid, ...allUsers[uid] }));
+    const filtered = usersArray.filter(u => !isAdminEmail(u.email));
+    let result = filtered;
+    const search = filter.trim().toLowerCase();
+    if (search) {
+      result = filtered.filter(u =>
+        (u.fullName && u.fullName.toLowerCase().includes(search)) ||
+        (u.username && u.username.toLowerCase().includes(search)) ||
+        (u.email && u.email.toLowerCase().includes(search)) ||
+        (u.phone && u.phone.includes(search))
+      );
+    }
+    result.sort((a, b) => (b.createdAt || '').localeCompare(a.createdAt || ''));
+
+    if (result.length === 0) {
+      adminUserList.innerHTML = '<p style="color:var(--gray);text-align:center;padding:20px 0;">لا توجد نتائج مطابقة</p>';
+      return;
+    }
+
+    adminUserList.innerHTML = '';
+    result.forEach(user => {
+      const div = document.createElement('div');
+      div.className = 'admin-user-item';
+      const statusText = {
+        'pending': '⏳ قيد المراجعة',
+        'approved': '✅ مفعّل',
+        'rejected': '❌ مرفوض'
+      }[user.verificationStatus] || 'غير محدد';
+      const statusClass = {
+        'pending': 'pending',
+        'approved': 'approved',
+        'rejected': 'rejected'
+      }[user.verificationStatus] || '';
+      let verificationHTML = '';
+      if (user.cardHolderName || user.accountNumber) {
+        verificationHTML = `
+          <div class="verification-details">
+            <strong>طريقة الدفع:</strong> ${user.paymentMethod || 'مصرف الرافدين (سوبر كي)'}<br>
+            <strong>اسم صاحب البطاقة:</strong> ${user.cardHolderName || 'غير محدد'}<br>
+            <strong>رقم الحساب:</strong> ${user.accountNumber || 'غير محدد'}
+          </div>
+        `;
+      }
+      div.innerHTML = `
+        <div class="user-header">
+          <span class="user-name">${user.fullName || 'غير معروف'} (@${user.username || 'لا يوجد'})</span>
+          <span class="user-status ${statusClass}">${statusText}</span>
+        </div>
+        <div class="user-details">
+          <span>📧 ${user.email || 'لا يوجد'}</span>
+          <span>📱 ${user.phone || 'لا يوجد'}</span>
+          <span>💰 ${user.walletId || 'لا يوجد'}</span>
+          <span>💳 ${formatCurrency(user.balance || 0)}</span>
+        </div>
+        ${verificationHTML}
+        <div class="user-actions">
+          <button class="edit-btn" data-uid="${user.uid}"><i class="fas fa-edit"></i> تعديل</button>
+          ${user.verificationStatus === 'pending' ? `
+            <button class="approve-btn" data-uid="${user.uid}"><i class="fas fa-check"></i> قبول</button>
+            <button class="reject-btn" data-uid="${user.uid}"><i class="fas fa-times"></i> رفض</button>
+          ` : ''}
+          ${user.verificationStatus === 'rejected' ? `
+            <button class="approve-btn" data-uid="${user.uid}"><i class="fas fa-check"></i> قبول</button>
+          ` : ''}
+        </div>
+      `;
+      adminUserList.appendChild(div);
+    });
+
+    document.querySelectorAll('#adminUserList .edit-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const uid = btn.dataset.uid;
+        if (allUsers[uid]) openEditModal(uid, allUsers[uid]);
+      });
+    });
+    document.querySelectorAll('#adminUserList .approve-btn').forEach(btn => {
+      btn.addEventListener('click', () => approveUser(btn.dataset.uid));
+    });
+    document.querySelectorAll('#adminUserList .reject-btn').forEach(btn => {
+      btn.addEventListener('click', () => rejectUser(btn.dataset.uid));
+    });
+  }
+
+  function renderAdminVerifications() {
+    const pendingUsers = Object.keys(allUsers)
+      .map(uid => ({ uid, ...allUsers[uid] }))
+      .filter(u => u.verificationStatus === 'pending' && (u.cardHolderName || u.accountNumber))
+      .filter(u => !isAdminEmail(u.email));
+
+    if (pendingUsers.length === 0) {
+      adminVerificationList.innerHTML = '<p style="color:var(--gray);text-align:center;padding:20px 0;">لا توجد طلبات توثيق معلقة</p>';
+      return;
+    }
+
+    adminVerificationList.innerHTML = '';
+    pendingUsers.forEach(user => {
+      const div = document.createElement('div');
+      div.className = 'admin-user-item';
+      div.innerHTML = `
+        <div class="user-header">
+          <span class="user-name">${user.fullName || 'غير معروف'} (@${user.username || 'لا يوجد'})</span>
+          <span class="user-status pending">⏳ قيد المراجعة</span>
+        </div>
+        <div class="user-details">
+          <span>📧 ${user.email || 'لا يوجد'}</span>
+          <span>📱 ${user.phone || 'لا يوجد'}</span>
+        </div>
+        <div class="verification-details">
+          <strong>طريقة الدفع:</strong> ${user.paymentMethod || 'مصرف الرافدين (سوبر كي)'}<br>
+          <strong>اسم صاحب البطاقة:</strong> ${user.cardHolderName || 'غير محدد'}<br>
+          <strong>رقم الحساب:</strong> ${user.accountNumber || 'غير محدد'}
+        </div>
+        <div class="user-actions">
+          <button class="approve-btn" data-uid="${user.uid}"><i class="fas fa-check"></i> قبول</button>
+          <button class="reject-btn" data-uid="${user.uid}"><i class="fas fa-times"></i> رفض</button>
+        </div>
+      `;
+      adminVerificationList.appendChild(div);
+    });
+
+    document.querySelectorAll('#adminVerificationList .approve-btn').forEach(btn => {
+      btn.addEventListener('click', () => approveUser(btn.dataset.uid));
+    });
+    document.querySelectorAll('#adminVerificationList .reject-btn').forEach(btn => {
+      btn.addEventListener('click', () => rejectUser(btn.dataset.uid));
+    });
+  }
+
+  function renderAdminTransactions() {
+    const txArray = Object.keys(allTransactionsData).flatMap(uid =>
+      Object.keys(allTransactionsData[uid] || {}).map(txId => ({
+        uid,
+        txId,
+        ...allTransactionsData[uid][txId],
+        userData: allUsers[uid] || {}
+      }))
+    );
+    txArray.sort((a, b) => (b.date || '').localeCompare(a.date || ''));
+
+    if (txArray.length === 0) {
+      adminTransactionList.innerHTML = '<p style="color:var(--gray);text-align:center;padding:20px 0;">لا توجد معاملات مسجلة</p>';
+      return;
+    }
+
+    adminTransactionList.innerHTML = '';
+    txArray.forEach(tx => {
+      const div = document.createElement('div');
+      div.className = 'admin-tx-item';
+
+      const statusText = {
+        'pending': '⏳ قيد المراجعة',
+        'approved': '✅ مقبولة',
+        'rejected': '❌ مرفوضة'
+      }[tx.adminStatus || 'pending'] || '⏳ قيد المراجعة';
+      const statusClass = {
+        'pending': 'pending',
+        'approved': 'approved',
+        'rejected': 'rejected'
+      }[tx.adminStatus || 'pending'] || 'pending';
+
+      const isDeposit = tx.type === 'deposit';
+      const user = tx.userData;
+
+      let noteHTML = '';
+      if (tx.adminNote) {
+        noteHTML = `<div class="tx-note"><strong>سبب الرفض:</strong> ${tx.adminNote}</div>`;
+      }
+
+      div.innerHTML = `
+        <div class="tx-header">
+          <span class="tx-user">${user.fullName || 'غير معروف'} (@${user.username || 'لا يوجد'})</span>
+          <span class="tx-amount ${isDeposit ? 'deposit' : 'withdraw'}">${isDeposit ? '+' : '-'}${formatCurrency(tx.amount || 0)}</span>
+        </div>
+        <div class="tx-details">
+          <span>${isDeposit ? '💰 إيداع' : '💸 سحب'}</span>
+          <span> | ${new Date(tx.date).toLocaleString('ar-EG')}</span>
+          <span> | رقم المحفظة: ${user.walletId || 'لا يوجد'}</span>
+          ${tx.code ? `<span> | كود: ${tx.code}</span>` : ''}
+          ${tx.imageUrl ? `<span> | <a href="${tx.imageUrl}" target="_blank">صورة التحويل</a></span>` : ''}
+        </div>
+        <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:6px; margin-top:4px;">
+          <span class="tx-status ${statusClass}">${statusText}</span>
+        </div>
+        ${tx.adminStatus !== 'approved' && tx.adminStatus !== 'rejected' ? `
+          <div class="tx-actions">
+            <button class="approve-tx" data-uid="${tx.uid}" data-txid="${tx.txId}"><i class="fas fa-check"></i> قبول</button>
+            <button class="reject-tx" data-uid="${tx.uid}" data-txid="${tx.txId}"><i class="fas fa-times"></i> رفض</button>
+          </div>
+        ` : ''}
+        ${noteHTML}
+      `;
+      adminTransactionList.appendChild(div);
+    });
+
+    document.querySelectorAll('#adminTransactionList .approve-tx').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const uid = btn.dataset.uid;
+        const txId = btn.dataset.txid;
+        approveTransaction(uid, txId);
+      });
+    });
+    document.querySelectorAll('#adminTransactionList .reject-tx').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const uid = btn.dataset.uid;
+        const txId = btn.dataset.txid;
+        rejectTransaction(uid, txId);
+      });
+    });
+  }
+
+  async function approveUser(uid) {
+    if (!confirm('هل أنت متأكد من قبول هذا المستخدم؟')) return;
+    try {
+      await update(ref(database, 'users/' + uid), { verificationStatus: 'approved' });
+      await remove(ref(database, 'pendingVerifications/' + uid));
+      showToast('✅ تم قبول المستخدم بنجاح!', 'success');
+    } catch (err) {
+      showToast('خطأ: ' + err.message, 'error');
+    }
+  }
+
+  async function rejectUser(uid) {
+    const reason = prompt('الرجاء كتابة سبب الرفض (سيظهر للمستخدم):');
+    if (reason === null) return;
+    if (!reason.trim()) {
+      showToast('⚠️ يجب كتابة سبب الرفض.', 'error');
+      return;
+    }
+    try {
+      await update(ref(database, 'users/' + uid), {
+        verificationStatus: 'rejected',
+        rejectionReason: reason.trim()
+      });
+      await remove(ref(database, 'pendingVerifications/' + uid));
+      showToast('❌ تم رفض المستخدم.', 'success');
+    } catch (err) {
+      showToast('خطأ: ' + err.message, 'error');
+    }
+  }
+
+  async function approveTransaction(uid, txId) {
+    if (!confirm('هل أنت متأكد من قبول هذه المعاملة؟')) return;
+    try {
+      const txSnap = await get(ref(database, 'transactions/' + uid + '/' + txId));
+      const txData = txSnap.val();
+      if (!txData) { showToast('المعاملة غير موجودة.', 'error'); return; }
+
+      if (txData.type === 'deposit') {
+        const userRef = ref(database, 'users/' + uid);
+        const userSnap = await get(userRef);
+        const userData = userSnap.val();
+        if (userData) {
+          const newBalance = (userData.balance || 0) + txData.amount;
+          await update(userRef, { balance: newBalance });
+        }
+      }
+
+      await update(ref(database, 'transactions/' + uid + '/' + txId), {
+        adminStatus: 'approved',
+        adminNote: null
+      });
+
+      showToast('✅ تم قبول المعاملة بنجاح!', 'success');
+    } catch (err) {
+      showToast('خطأ: ' + err.message, 'error');
+    }
+  }
+
+  async function rejectTransaction(uid, txId) {
+    const reason = prompt('الرجاء كتابة سبب الرفض (سيظهر للمستخدم):');
+    if (reason === null) return;
+    if (!reason.trim()) {
+      showToast('⚠️ يجب كتابة سبب الرفض.', 'error');
+      return;
+    }
+    try {
+      await update(ref(database, 'transactions/' + uid + '/' + txId), {
+        adminStatus: 'rejected',
+        adminNote: reason.trim()
+      });
+      showToast('❌ تم رفض المعاملة.', 'success');
+    } catch (err) {
+      showToast('خطأ: ' + err.message, 'error');
+    }
+  }
+
+  function updateAdminStats() {
+    const users = Object.values(allUsers).filter(u => !isAdminEmail(u.email));
+    statUsers.textContent = users.length;
+
+    const totalBalance = users.reduce((sum, u) => sum + (u.balance || 0), 0);
+    statTotalBalance.textContent = formatCurrency(totalBalance);
+
+    let totalDeposits = 0, totalWithdrawals = 0;
+    Object.keys(allTransactionsData).forEach(uid => {
+      const txns = allTransactionsData[uid] || {};
+      Object.values(txns).forEach(tx => {
+        if (tx.adminStatus === 'approved') {
+          if (tx.type === 'deposit') totalDeposits += tx.amount || 0;
+          else if (tx.type === 'withdraw') totalWithdrawals += tx.amount || 0;
+        }
+      });
+    });
+    statDeposits.textContent = formatCurrency(totalDeposits);
+    statWithdrawals.textContent = formatCurrency(totalWithdrawals);
+
+    applyAdminFilter();
+  }
+
+  function applyAdminFilter() {
+    const month = filterMonth.value;
+    const year = filterYear.value;
+    let monthDep = 0, monthWith = 0;
+
+    Object.keys(allTransactionsData).forEach(uid => {
+      const txns = allTransactionsData[uid] || {};
+      Object.values(txns).forEach(tx => {
+        if (tx.adminStatus === 'approved') {
+          const date = new Date(tx.date);
+          const txMonth = String(date.getMonth() + 1).padStart(2, '0');
+          const txYear = String(date.getFullYear());
+          if (txMonth === month && txYear === year) {
+            if (tx.type === 'deposit') monthDep += tx.amount || 0;
+            else if (tx.type === 'withdraw') monthWith += tx.amount || 0;
+          }
+        }
+      });
+    });
+
+    monthDeposits.textContent = formatCurrency(monthDep);
+    monthWithdrawals.textContent = formatCurrency(monthWith);
+    monthNet.textContent = formatCurrency(monthDep - monthWith);
+  }
+
+  // ============================================================
+  //  ADMIN EDIT MODAL
+  // ============================================================
+  function openEditModal(uid, userData) {
+    editingUid = uid;
+    editFullName.value = userData.fullName || '';
+    editUsername.value = userData.username || '';
+    editEmail.value = userData.email || '';
+    editPhone.value = userData.phone || '';
+    editAddress.value = userData.address || '';
+    editBalance.value = userData.balance || 0;
+    editVerificationStatus.value = userData.verificationStatus || 'pending';
+    editModal.classList.add('active');
+  }
+
+  function closeEditModal() {
+    editingUid = null;
+    editModal.classList.remove('active');
+  }
+
+  cancelEditBtn.addEventListener('click', closeEditModal);
+  editModal.addEventListener('click', (e) => {
+    if (e.target === editModal) closeEditModal();
+  });
+
+  saveEditBtn.addEventListener('click', async () => {
+    if (!editingUid) return;
+    const data = {
+      fullName: editFullName.value.trim(),
+      username: editUsername.value.trim(),
+      email: editEmail.value.trim(),
+      phone: editPhone.value.trim(),
+      address: editAddress.value.trim(),
+      balance: parseFloat(editBalance.value) || 0,
+      verificationStatus: editVerificationStatus.value
+    };
+    if (!data.fullName || !data.username || !data.email || !data.phone) {
+      showToast('⚠️ يرجى ملء جميع الحقول الأساسية.', 'error');
+      return;
+    }
+    try {
+      await update(ref(database, 'users/' + editingUid), data);
+      showToast('✅ تم تحديث بيانات المستخدم بنجاح!', 'success');
+      closeEditModal();
+    } catch (err) {
+      showToast('فشل التحديث: ' + err.message, 'error');
+    }
+  });
+
+  // ============================================================
+  //  SEARCH & FILTER
+  // ============================================================
+  adminSearchBtn.addEventListener('click', () => renderAdminUsers(adminSearchInput.value));
+  adminSearchInput.addEventListener('keypress', (e) => {
+    if (e.key === 'Enter') renderAdminUsers(adminSearchInput.value);
+  });
+
+  applyFilterBtn.addEventListener('click', applyAdminFilter);
+
+  goToCompletionBtn.addEventListener('click', () => navigateTo('pageCompletion'));
+
+  // ============================================================
+  //  AUTH STATE OBSERVER
+  // ============================================================
+  onAuthStateChanged(auth, (user) => {
+    if (user) {
+      const email = user.email || '';
+      isAdmin = isAdminEmail(email);
+      currentUser = user;
+
+      authSection.style.display = 'none';
+      appMain.classList.add('active');
+
+      if (isAdmin) {
+        userBadge.innerHTML = `<i class="fas fa-user-shield" style="color:var(--primary);"></i><span>مدير</span>`;
+        headerUsername.textContent = 'مدير';
+      } else {
+        userBadge.innerHTML = `<i class="fas fa-user-circle"></i><span id="headerUsername">مستخدم</span>`;
+      }
+
+      buildNavbar(isAdmin);
+
+      if (isAdmin) {
+        loadAdminData();
+        completionBanner.style.display = 'none';
+        navigateTo('pageAdminHome');
+      } else {
+        loadUserData(user.uid);
+        setTimeout(() => {
+          if (currentUserData) {
+            const status = currentUserData.verificationStatus;
+            if (status === 'pending' && currentUserData.paymentMethod) {
+              navigateTo('pagePending');
+            } else if (status === 'rejected') {
+              navigateTo('pageCompletion');
+            } else {
+              navigateTo('pageHome');
+            }
+          } else {
+            navigateTo('pageHome');
+          }
+        }, 500);
+      }
+
+    } else {
+      currentUser = null;
+      currentUserData = null;
+      isAdmin = false;
+      authSection.style.display = 'flex';
+      appMain.classList.remove('active');
+      emailInput.value = '';
+      passwordInput.value = '';
+      fullNameInput.value = '';
+      usernameInput.value = '';
+      phoneInput.value = '';
+      addressInput.value = '';
+      cardHolderName.value = '';
+      accountNumber.value = '';
+      clearToast();
+      bottomNav.innerHTML = '';
+    }
+  });
+
+  // ============================================================
+  //  INIT
+  // ============================================================
+  authSection.style.display = 'flex';
+  appMain.classList.remove('active');
+  signupFields.classList.remove('visible');
+  bottomNav.innerHTML = '';
+
+  console.log('✅ GOOSIQ WALLET - تصميم متوافق مع الهواتف وجاهز للاستخدام!');
+</script>
 </body>
 </html>
