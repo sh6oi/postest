@@ -218,6 +218,14 @@
             transform: scale(1.05);
             box-shadow: 0 0 60px rgba(241,196,15,0.55), 0 0 120px rgba(241,196,15,0.25);
         }
+        .robot-avatar.speaking {
+            animation: robotSpeak 0.6s ease-in-out infinite alternate;
+            box-shadow: 0 0 70px rgba(241,196,15,0.75), 0 0 140px rgba(241,196,15,0.35);
+        }
+        @keyframes robotSpeak {
+            from { transform: scale(1) translateY(0); }
+            to { transform: scale(1.06) translateY(-6px); }
+        }
         .robot-avatar::before,
         .robot-avatar::after {
             content: ''; position: absolute; border-radius: 50%;
@@ -632,11 +640,11 @@
         <div class="footer">
             <p class="credit">تم تصميم هذا الموقع من قبل التدريسي <strong>مجتبى كريم</strong> و تقني الاشعة <strong>نور الزهراء علي عبد</strong> و تقني الاشعة <strong>زهراء علي طالب</strong></p>
             <div class="social-links">
-                <a href="https://www.instagram.com/mojtabakr1.sc?igsh=bXR0YjM1MzJ0NmE0" target="_blank">
+                <a                 <a href="https://www.instagram.com/mojtabakr1.sc?igsh=bXR0YjM1MzJ0NmE0" target="_blank">
                     <i class="fab fa-instagram"></i> @mojtabakr1.sc
                 </a>
             </div>
-                        <div class="coop">
+            <div class="coop">
                 بالتعاون مع أكاديمية <strong>ONERAY</strong> التعليمية
                 <div class="social-links" style="margin-top: 12px;">
                     <a href="https://www.instagram.com/oneray.academy?igsh=Y29vd3ZsbWV2bncy" target="_blank">
@@ -644,7 +652,7 @@
                     </a>
                 </div>
             </div>
-                        <button class="start-quiz-btn" id="startQuizBtn">
+            <button class="start-quiz-btn" id="startQuizBtn">
                 <i class="fas fa-play-circle"></i> اختبر نفسك
             </button>
         </div>
@@ -770,42 +778,40 @@
     let robotOpened = false;
     let typingTimer = null;
 
-    // ===== النطق الصوتي للروبوت =====
+    // ===== النطق الصوتي (Text-to-Speech) =====
     let arabicVoice = null;
 
     function loadVoices() {
-        const voices = speechSynthesis.getVoices();
-        arabicVoice =
-            voices.find(v => v.lang === 'ar-SA') ||
-            voices.find(v => v.lang === 'ar-EG') ||
-            voices.find(v => v.lang.startsWith('ar')) ||
-            null;
-    }
-    loadVoices();
-    if (typeof speechSynthesis !== 'undefined' && speechSynthesis.onvoiceschanged !== undefined) {
-        speechSynthesis.onvoiceschanged = loadVoices;
-    }
-
-    function speakRobot(text) {
         if (!('speechSynthesis' in window)) return;
-        speechSynthesis.cancel();
+        const voices = window.speechSynthesis.getVoices();
+        arabicVoice = voices.find(v => v.lang && v.lang.toLowerCase().startsWith('ar')) || null;
+    }
 
-        const cleanText = text
-            .replace(/<[^>]*>/g, ' ')
-            .replace(/[🤖🎯💡✅❌]/g, '')
-            .replace(/\s+/g, ' ')
-            .trim();
+    if ('speechSynthesis' in window) {
+        loadVoices();
+        window.speechSynthesis.onvoiceschanged = loadVoices;
+    }
 
-        if (!cleanText) return;
+    function speakArabic(text) {
+        if (!('speechSynthesis' in window)) return;
+        try {
+            window.speechSynthesis.cancel();
+            const utterance = new SpeechSynthesisUtterance(text);
+            utterance.lang = 'ar-SA';
+            utterance.rate = 0.95;
+            utterance.pitch = 1.05;
+            utterance.volume = 1;
+            if (arabicVoice) utterance.voice = arabicVoice;
 
-        const utterance = new SpeechSynthesisUtterance(cleanText);
-        utterance.lang = 'ar-SA';
-        utterance.rate = 0.95;
-        utterance.pitch = 1.05;
-        utterance.volume = 1;
-        if (arabicVoice) utterance.voice = arabicVoice;
+            const avatar = document.getElementById('robotAvatar');
+            utterance.onstart = () => { if (avatar) avatar.classList.add('speaking'); };
+            utterance.onend = () => { if (avatar) avatar.classList.remove('speaking'); };
+            utterance.onerror = () => { if (avatar) avatar.classList.remove('speaking'); };
 
-        speechSynthesis.speak(utterance);
+            window.speechSynthesis.speak(utterance);
+        } catch (e) {
+            console.warn('Speech synthesis error:', e);
+        }
     }
 
     // ===== كتابة نص الروبوت بشكل مطبعي =====
@@ -861,7 +867,7 @@
         });
     }
 
-    // فتح الروبوت: الضغط على الأفاتار يعرض السؤال ثم المناطق وينطق العبارة
+    // فتح الروبوت: الضغط على الأفاتار يعرض السؤال ثم المناطق
     function openRobot() {
         robotOpened = true;
         const regionsEl = document.getElementById('robotRegions');
@@ -879,15 +885,11 @@
         void regionsEl.offsetWidth;
         regionsEl.style.animation = 'fadeUp 0.5s ease';
 
-        const questionText = 'أهلاً بك! <strong>أنا مساعدك الشعاعي</strong> 🤖<br>ما المنطقة التي تريد أن تشاهد وضعيات التصوير الشعاعي الخاصة بها؟';
+        const welcomeHtml = 'أهلاً بك! <strong>أنا مساعدك الشعاعي</strong> 🤖<br>ما المنطقة التي تريد أن تشاهد وضعيات التصوير الشعاعي الخاصة بها؟';
+        typeRobotMessage(welcomeHtml, '💡 اختر إحدى المناطق بالأسفل');
 
-        typeRobotMessage(
-            questionText,
-            '💡 اختر إحدى المناطق بالأسفل'
-        );
-
-        // نطق العبارة عند الضغط على الروبوت
-        speakRobot('أهلاً بك، أنا مساعدك الشعاعي، ما المنطقة التي تريد أن تشاهد وضعيات التصوير الشعاعي الخاصة بها؟');
+        // النطق الصوتي عند الضغط على الروبوت
+        speakArabic('أهلاً بك! أنا مساعدك الشعاعي. ما المنطقة التي تريد أن تشاهد وضعيات التصوير الشعاعي الخاصة بها؟');
     }
 
     function selectRegionFromRobot(regionName, cardElement) {
@@ -1191,7 +1193,7 @@
         if (this.value) startQuiz(this.value);
     };
 
-    // الضغط على الروبوت يفتح السؤال وينطق العبارة
+    // الضغط على الروبوت يفتح السؤال + ينطق العبارة الترحيبية
     document.getElementById('robotAvatar').addEventListener('click', function() {
         openRobot();
     });
