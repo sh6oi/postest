@@ -1,2608 +1,1257 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-  <title>GOOSIQ WALLET</title>
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
-  <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;900&display=swap" rel="stylesheet" />
-  <style>
-    /* ===== STYLES ===== */
-    * { margin: 0; padding: 0; box-sizing: border-box; }
-    body {
-      font-family: 'Tajawal', sans-serif;
-      background: #f0f2f8;
-      min-height: 100vh;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      padding: 12px;
-      background: linear-gradient(145deg, #0b1120 0%, #1a2744 100%);
-    }
-    .app-container {
-      width: 100%;
-      max-width: 420px;
-      height: 95vh;
-      max-height: 800px;
-      background: #ffffff;
-      border-radius: 32px;
-      box-shadow: 0 20px 60px rgba(0,0,0,0.6);
-      overflow: hidden;
-      display: flex;
-      flex-direction: column;
-      position: relative;
-    }
-    #authSection {
-      padding: 30px 24px 20px;
-      flex: 1;
-      display: flex;
-      flex-direction: column;
-      overflow-y: auto;
-    }
-    .auth-header { text-align: center; margin-bottom: 28px; }
-    .auth-header .logo-icon {
-      font-size: 48px;
-      color: #f5b041;
-      background: rgba(245,176,65,0.10);
-      width: 80px;
-      height: 80px;
-      border-radius: 50%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      margin: 0 auto 12px;
-      border: 2px solid rgba(245,176,65,0.25);
-    }
-    .auth-header h1 { font-size: 28px; font-weight: 900; color: #1a2744; }
-    .auth-header h1 span { color: #f5b041; }
-    .auth-header p { color: #7f8c9b; font-size: 14px; }
-    .form-group { margin-bottom: 16px; }
-    .form-group label { display: block; font-weight: 700; font-size: 14px; color: #1a2744; margin-bottom: 5px; }
-    .form-group input, .form-group textarea {
-      width: 100%;
-      padding: 12px 16px;
-      border: 2px solid #e2e6ee;
-      border-radius: 16px;
-      font-size: 15px;
-      font-family: 'Tajawal', sans-serif;
-      background: #f8f9fc;
-      transition: 0.3s;
-    }
-    .form-group input:focus, .form-group textarea:focus {
-      border-color: #f5b041;
-      outline: none;
-      box-shadow: 0 0 0 4px rgba(245,176,65,0.12);
-      background: #fff;
-    }
-    .signup-fields { display: none; }
-    .signup-fields.visible { display: block; }
-    .btn-primary {
-      width: 100%;
-      padding: 14px;
-      border: none;
-      border-radius: 16px;
-      font-size: 18px;
-      font-weight: 700;
-      background: linear-gradient(135deg, #f5b041, #e67e22);
-      color: #fff;
-      cursor: pointer;
-      transition: 0.3s;
-      margin-top: 8px;
-      box-shadow: 0 6px 20px rgba(245,176,65,0.30);
-    }
-    .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 10px 28px rgba(245,176,65,0.40); }
-    .btn-primary:active { transform: scale(0.97); }
-    .btn-primary:disabled { opacity: 0.6; cursor: not-allowed; }
-    .toggle-link { text-align: center; margin-top: 16px; color: #7f8c9b; font-size: 15px; }
-    .toggle-link span { color: #f5b041; font-weight: 700; cursor: pointer; }
-    .toggle-link span:hover { text-decoration: underline; }
-    .toast-container {
-      position: fixed;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      z-index: 9999;
-      pointer-events: none;
-      width: 90%;
-      max-width: 400px;
-    }
-    .toast {
-      background: #e74c3c;
-      color: #fff;
-      padding: 18px 24px;
-      border-radius: 16px;
-      font-size: 17px;
-      font-weight: 700;
-      text-align: center;
-      pointer-events: auto;
-      animation: slideDown 0.4s ease-out forwards;
-      box-shadow: 0 20px 50px rgba(0,0,0,0.4);
-      border-right: 6px solid #c0392b;
-      position: relative;
-    }
-    .toast.success { background: #27ae60; border-right-color: #1e8449; }
-    .toast .close-toast { position: absolute; top: 4px; left: 16px; font-size: 22px; cursor: pointer; opacity: 0.7; }
-    .toast .close-toast:hover { opacity: 1; }
-    @keyframes slideDown {
-      from { opacity: 0; transform: translateY(-40px) scale(0.92); }
-      to { opacity: 1; transform: translateY(0) scale(1); }
-    }
-    .app-main {
-      flex: 1;
-      display: none;
-      flex-direction: column;
-      background: #f5f7fb;
-      height: 100%;
-      overflow: hidden;
-    }
-    .app-main.active { display: flex; }
-    .app-header {
-      background: linear-gradient(135deg, #1a2744, #2c3e6b);
-      padding: 20px 24px 16px;
-      border-bottom-left-radius: 28px;
-      border-bottom-right-radius: 28px;
-      color: #fff;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      flex-shrink: 0;
-    }
-    .app-header .brand { font-size: 18px; font-weight: 900; }
-    .app-header .brand span { color: #f5b041; }
-    .app-header .user-badge {
-      background: rgba(255,255,255,0.12);
-      padding: 6px 14px;
-      border-radius: 30px;
-      font-size: 13px;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      backdrop-filter: blur(4px);
-    }
-    .back-btn {
-      background: none;
-      border: none;
-      color: #1a2744;
-      font-size: 22px;
-      cursor: pointer;
-    }
-    .page-content {
-      flex: 1;
-      padding: 20px 20px 80px;
-      overflow-y: auto;
-    }
-    .page { display: none; animation: fadeUp 0.4s ease; }
-    .page.active { display: block; }
-    @keyframes fadeUp {
-      from { opacity: 0; transform: translateY(18px); }
-      to { opacity: 1; transform: translateY(0); }
-    }
-    /* ===== BALANCE CARD ===== */
-    .balance-card {
-      background: linear-gradient(145deg, #1a2744, #2c3e6b);
-      border-radius: 24px;
-      padding: 28px 24px 22px;
-      color: #fff;
-      box-shadow: 0 12px 35px rgba(26,39,68,0.30);
-      margin-bottom: 22px;
-      position: relative;
-      overflow: hidden;
-    }
-    .balance-card .label { font-size: 14px; opacity: 0.7; }
-    .balance-card .balance { font-size: 42px; font-weight: 900; margin: 6px 0 12px; }
-    .balance-card .balance span { font-size: 24px; font-weight: 700; opacity: 0.8; }
-    .balance-card .wallet-row {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      background: rgba(255,255,255,0.07);
-      padding: 10px 16px;
-      border-radius: 16px;
-      margin-top: 8px;
-    }
-    .balance-card .wallet-row .wallet-id { font-family: monospace; font-size: 16px; flex: 1; }
-    .balance-card .wallet-row .copy-btn {
-      background: rgba(255,255,255,0.12);
-      border: none;
-      color: #fff;
-      width: 38px;
-      height: 38px;
-      border-radius: 50%;
-      cursor: pointer;
-      font-size: 16px;
-    }
-    /* ===== ACTION BUTTONS ===== */
-    .action-buttons { display: flex; gap: 14px; margin-bottom: 24px; }
-    .action-buttons .btn-action {
-      flex: 1;
-      padding: 14px 0;
-      border: none;
-      border-radius: 16px;
-      font-size: 16px;
-      font-weight: 700;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 8px;
-      background: #fff;
-      border: 2px solid #e2e6ee;
-    }
-    .action-buttons .btn-action.deposit {
-      background: linear-gradient(135deg, #27ae60, #2ecc71);
-      color: #fff;
-      border: none;
-    }
-    .action-buttons .btn-action.withdraw {
-      background: linear-gradient(135deg, #e67e22, #f5b041);
-      color: #fff;
-      border: none;
-    }
-    .action-buttons .btn-action:disabled { opacity: 0.5; cursor: not-allowed; }
-    /* ===== TRANSACTIONS (user) ===== */
-    .recent-title { font-size: 17px; font-weight: 700; color: #1a2744; margin-bottom: 12px; display: flex; align-items: center; gap: 8px; }
-    .transaction-item {
-      background: #fff;
-      padding: 14px 18px;
-      border-radius: 16px;
-      margin-bottom: 10px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.04);
-      border-right: 4px solid #27ae60;
-    }
-    .transaction-item.withdraw { border-right-color: #e67e22; }
-    .transaction-item .tx-info { display: flex; flex-direction: column; }
-    .transaction-item .tx-type { font-weight: 700; font-size: 15px; color: #1a2744; }
-    .transaction-item .tx-date { font-size: 12px; color: #7f8c9b; }
-    .transaction-item .tx-amount { font-weight: 900; font-size: 18px; }
-    .transaction-item .tx-amount.positive { color: #27ae60; }
-    .transaction-item .tx-amount.negative { color: #e67e22; }
-    /* ===== DEPOSIT / WITHDRAW PAGES ===== */
-    .deposit-page .bottom-nav, .withdraw-page .bottom-nav { display: none; }
-    .deposit-page .page-content, .withdraw-page .page-content { padding-bottom: 20px; }
-    /* ===== ADMIN ===== */
-    .stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 20px; }
-    .stat-card {
-      background: #fff;
-      border-radius: 16px;
-      padding: 18px 16px;
-      box-shadow: 0 8px 30px rgba(0,0,0,0.12);
-      text-align: center;
-      border-right: 4px solid #f5b041;
-    }
-    .stat-card .stat-icon { font-size: 28px; margin-bottom: 6px; }
-    .stat-card .stat-number { font-size: 24px; font-weight: 900; color: #1a2744; }
-    .stat-card .stat-label { font-size: 13px; color: #7f8c9b; font-weight: 700; }
-    .stat-card.blue { border-right-color: #3498db; }
-    .stat-card.green { border-right-color: #27ae60; }
-    .stat-card.orange { border-right-color: #e67e22; }
-    .stat-card.purple { border-right-color: #8e44ad; }
-    .filter-section { display: flex; gap: 12px; margin-bottom: 20px; flex-wrap: wrap; }
-    .filter-section select {
-      flex: 1;
-      padding: 10px 14px;
-      border: 2px solid #e2e6ee;
-      border-radius: 16px;
-      font-size: 15px;
-      font-family: 'Tajawal', sans-serif;
-      background: #fff;
-      min-width: 100px;
-    }
-    .filter-section .filter-btn {
-      padding: 10px 20px;
-      border: none;
-      border-radius: 16px;
-      background: linear-gradient(135deg, #f5b041, #e67e22);
-      color: #fff;
-      font-weight: 700;
-      cursor: pointer;
-    }
-    /* ===== ADMIN USERS ===== */
-    .admin-search { display: flex; gap: 12px; margin-bottom: 16px; }
-    .admin-search input {
-      flex: 1;
-      padding: 12px 16px;
-      border: 2px solid #e2e6ee;
-      border-radius: 16px;
-      font-size: 15px;
-      background: #f8f9fc;
-    }
-    .admin-search .search-btn {
-      padding: 12px 20px;
-      border: none;
-      border-radius: 16px;
-      background: linear-gradient(135deg, #f5b041, #e67e22);
-      color: #fff;
-      font-weight: 700;
-      cursor: pointer;
-    }
-    .admin-user-item {
-      background: #fff;
-      border-radius: 16px;
-      padding: 16px 18px;
-      margin-bottom: 12px;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.04);
-      border-right: 4px solid #3498db;
-    }
-    .admin-user-item .user-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; flex-wrap: wrap; gap: 6px; }
-    .admin-user-item .user-name { font-weight: 700; font-size: 16px; color: #1a2744; }
-    .admin-user-item .user-status { font-size: 12px; padding: 4px 12px; border-radius: 20px; font-weight: 700; }
-    .admin-user-item .user-status.pending { background: #fef9e7; color: #f39c12; }
-    .admin-user-item .user-status.approved { background: #eafaf1; color: #27ae60; }
-    .admin-user-item .user-status.rejected { background: #fdedec; color: #e74c3c; }
-    .admin-user-item .user-details { font-size: 14px; color: #555; margin-bottom: 8px; display: flex; flex-wrap: wrap; gap: 4px 12px; }
-    .admin-user-item .user-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px; }
-    .admin-user-item .user-actions button {
-      padding: 6px 16px;
-      border: none;
-      border-radius: 10px;
-      font-weight: 700;
-      cursor: pointer;
-      font-size: 13px;
-    }
-    .admin-user-item .user-actions .edit-btn { background: #3498db; color: #fff; }
-    .admin-user-item .user-actions .approve-btn { background: #27ae60; color: #fff; }
-    .admin-user-item .user-actions .reject-btn { background: #e74c3c; color: #fff; }
-    /* ===== ADMIN TRANSACTIONS ===== */
-    .admin-tx-search {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 12px;
-      margin-bottom: 16px;
-      background: #fff;
-      padding: 16px;
-      border-radius: 16px;
-      box-shadow: 0 8px 30px rgba(0,0,0,0.12);
-    }
-    .admin-tx-search .search-group {
-      flex: 1;
-      min-width: 140px;
-      display: flex;
-      flex-direction: column;
-      gap: 4px;
-    }
-    .admin-tx-search .search-group label {
-      font-weight: 700;
-      font-size: 13px;
-      color: #7f8c9b;
-    }
-    .admin-tx-search .search-group input {
-      padding: 10px 14px;
-      border: 2px solid #e2e6ee;
-      border-radius: 16px;
-      font-size: 14px;
-      background: #f8f9fc;
-      width: 100%;
-    }
-    .admin-tx-search .search-actions {
-      display: flex;
-      gap: 8px;
-      align-items: flex-end;
-    }
-    .admin-tx-search .search-actions button {
-      padding: 10px 18px;
-      border: none;
-      border-radius: 16px;
-      font-weight: 700;
-      cursor: pointer;
-      height: 46px;
-    }
-    .admin-tx-search .search-actions .clear-filter-btn {
-      background: #eef2f7;
-      color: #7f8c9b;
-    }
-    .admin-tx-search .search-actions .clear-filter-btn:hover {
-      background: #e74c3c;
-      color: #fff;
-    }
-    .admin-tx-item {
-      background: #fff;
-      border-radius: 16px;
-      padding: 16px 18px;
-      margin-bottom: 12px;
-      box-shadow: 0 2px 10px rgba(0,0,0,0.06);
-      border-right: 5px solid #3498db;
-      cursor: pointer;
-      transition: 0.3s;
-    }
-    .admin-tx-item:hover { transform: translateY(-3px); box-shadow: 0 8px 25px rgba(0,0,0,0.10); }
-    .admin-tx-item .tx-header { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px; margin-bottom: 6px; }
-    .admin-tx-item .tx-user { font-weight: 700; font-size: 15px; color: #1a2744; display: flex; align-items: center; gap: 6px; }
-    .admin-tx-item .tx-user i { color: #f5b041; }
-    .admin-tx-item .tx-amount { font-weight: 900; font-size: 20px; padding: 2px 12px; border-radius: 30px; background: rgba(39,174,96,0.08); color: #27ae60; }
-    .admin-tx-item .tx-amount.withdraw { background: rgba(230,126,34,0.08); color: #e67e22; }
-    .admin-tx-item .tx-details { display: flex; flex-wrap: wrap; gap: 12px 20px; font-size: 13px; color: #555; margin-top: 4px; }
-    .admin-tx-item .tx-details span { display: flex; align-items: center; gap: 4px; }
-    .admin-tx-item .tx-details i { color: #7f8c9b; }
-    .admin-tx-item .tx-status-badge { font-size: 12px; padding: 3px 14px; border-radius: 30px; font-weight: 700; }
-    .admin-tx-item .tx-status-badge.pending { background: #fef9e7; color: #f39c12; border: 1px solid #f39c12; }
-    .admin-tx-item .tx-status-badge.approved { background: #eafaf1; color: #27ae60; border: 1px solid #27ae60; }
-    .admin-tx-item .tx-status-badge.rejected { background: #fdedec; color: #e74c3c; border: 1px solid #e74c3c; }
-    .admin-tx-item .tx-bottom { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px; margin-top: 10px; padding-top: 10px; border-top: 1px solid #f0f2f8; }
-    .admin-tx-item .tx-actions { display: flex; flex-wrap: wrap; gap: 6px; }
-    .admin-tx-item .tx-actions button { padding: 5px 16px; border: none; border-radius: 30px; font-weight: 700; cursor: pointer; font-size: 13px; }
-    .admin-tx-item .tx-actions .approve-tx { background: #27ae60; color: #fff; }
-    .admin-tx-item .tx-actions .reject-tx { background: #e74c3c; color: #fff; }
-    .admin-tx-item .tx-note { background: #fdedec; padding: 8px 14px; border-radius: 10px; margin-top: 6px; font-size: 13px; color: #e74c3c; border-right: 3px solid #e74c3c; display: flex; align-items: center; gap: 6px; }
-    .admin-tx-item .tx-click-hint { font-size: 11px; color: #7f8c9b; }
-    /* ===== TRANSACTION DETAIL MODAL ===== */
-    .tx-detail-modal .modal-box {
-      max-width: 480px;
-      background: linear-gradient(145deg, #ffffff, #f8f9fc);
-      border-radius: 30px;
-      padding: 30px 24px;
-      box-shadow: 0 20px 60px rgba(0,0,0,0.30);
-      position: relative;
-      overflow: hidden;
-    }
-    .tx-detail-modal .modal-box::before {
-      content: '';
-      position: absolute;
-      top: -80px;
-      right: -80px;
-      width: 250px;
-      height: 250px;
-      background: radial-gradient(circle, rgba(245,176,65,0.06) 0%, transparent 70%);
-      border-radius: 50%;
-    }
-    .tx-detail-modal .modal-box .detail-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 20px;
-      padding-bottom: 12px;
-      border-bottom: 2px solid #f0f2f8;
-    }
-    .tx-detail-modal .modal-box .detail-header h3 {
-      font-size: 20px;
-      font-weight: 900;
-      color: #1a2744;
-      margin: 0;
-      display: flex;
-      align-items: center;
-      gap: 10px;
-    }
-    .tx-detail-modal .modal-box .detail-header .close-detail {
-      background: none;
-      border: none;
-      font-size: 28px;
-      cursor: pointer;
-      color: #7f8c9b;
-      transition: 0.3s;
-    }
-    .tx-detail-modal .modal-box .detail-header .close-detail:hover {
-      color: #e74c3c;
-      transform: rotate(90deg);
-    }
-    .tx-detail-modal .modal-box .detail-body { display: flex; flex-direction: column; gap: 14px; }
-    .tx-detail-modal .modal-box .detail-row {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 8px 0;
-      border-bottom: 1px solid #f0f2f8;
-    }
-    .tx-detail-modal .modal-box .detail-row:last-child { border-bottom: none; }
-    .tx-detail-modal .modal-box .detail-row .label {
-      font-weight: 700;
-      color: #7f8c9b;
-      font-size: 14px;
-      display: flex;
-      align-items: center;
-      gap: 6px;
-    }
-    .tx-detail-modal .modal-box .detail-row .label i { color: #f5b041; width: 18px; }
-    .tx-detail-modal .modal-box .detail-row .value {
-      font-weight: 700;
-      color: #1a2744;
-      font-size: 15px;
-      text-align: left;
-      word-break: break-word;
-      max-width: 60%;
-    }
-    .tx-detail-modal .modal-box .detail-row .value .status-badge {
-      font-size: 13px;
-      padding: 2px 14px;
-      border-radius: 30px;
-      font-weight: 700;
-    }
-    .tx-detail-modal .modal-box .detail-row .value .status-badge.pending { background: #fef9e7; color: #f39c12; }
-    .tx-detail-modal .modal-box .detail-row .value .status-badge.approved { background: #eafaf1; color: #27ae60; }
-    .tx-detail-modal .modal-box .detail-row .value .status-badge.rejected { background: #fdedec; color: #e74c3c; }
-    .tx-detail-modal .modal-box .detail-image { margin-top: 10px; text-align: center; }
-    .tx-detail-modal .modal-box .detail-image img { max-width: 100%; max-height: 250px; border-radius: 16px; border: 2px solid #eef2f7; object-fit: contain; }
-    .tx-detail-modal .modal-box .detail-note {
-      background: #fdedec;
-      padding: 12px 16px;
-      border-radius: 16px;
-      border-right: 4px solid #e74c3c;
-      margin-top: 10px;
-      color: #e74c3c;
-      font-weight: 700;
-      font-size: 14px;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-    /* ===== MODAL OVERLAY ===== */
-    .modal-overlay {
-      position: fixed;
-      top: 0; left: 0;
-      width: 100%; height: 100%;
-      background: rgba(0,0,0,0.50);
-      backdrop-filter: blur(6px);
-      z-index: 9998;
-      display: none;
-      align-items: center;
-      justify-content: center;
-    }
-    .modal-overlay.active { display: flex; }
-    .modal-box {
-      background: #fff;
-      border-radius: 24px;
-      padding: 28px 24px;
-      width: 90%;
-      max-width: 400px;
-      max-height: 90vh;
-      overflow-y: auto;
-      animation: fadeUp 0.3s ease;
-      box-shadow: 0 20px 60px rgba(0,0,0,0.25);
-    }
-    .modal-box h3 { font-size: 20px; color: #1a2744; margin-bottom: 16px; text-align: center; }
-    .modal-box .modal-actions { display: flex; gap: 12px; margin-top: 16px; }
-    .modal-box .modal-actions button { flex: 1; padding: 12px; border: none; border-radius: 16px; font-weight: 700; cursor: pointer; font-size: 16px; }
-    .modal-box .modal-actions .save-btn { background: linear-gradient(135deg, #27ae60, #2ecc71); color: #fff; }
-    .modal-box .modal-actions .cancel-btn { background: #e74c3c; color: #fff; }
-    /* ===== BOTTOM NAV ===== */
-    .bottom-nav {
-      background: #fff;
-      border-top: 1px solid #e8ecf4;
-      display: flex;
-      justify-content: space-around;
-      padding: 8px 0 12px;
-      border-radius: 28px 28px 0 0;
-      flex-shrink: 0;
-    }
-    .bottom-nav .nav-item {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      background: none;
-      border: none;
-      cursor: pointer;
-      color: #b0b8c8;
-      transition: 0.3s;
-      padding: 4px 12px;
-      border-radius: 16px;
-      font-size: 10px;
-      font-weight: 700;
-      gap: 2px;
-      min-width: 50px;
-    }
-    .bottom-nav .nav-item i { font-size: 22px; }
-    .bottom-nav .nav-item.active { color: #f5b041; }
-    .bottom-nav .nav-item.logout-btn { color: #e74c3c; }
-    /* ===== WHATSAPP ===== */
-    .whatsapp-float {
-      position: fixed;
-      bottom: 20px;
-      left: 20px;
-      z-index: 999;
-      background: #25D366;
-      width: 60px;
-      height: 60px;
-      border-radius: 50%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      box-shadow: 0 4px 20px rgba(37,211,102,0.4);
-      text-decoration: none;
-      color: #fff;
-      font-size: 32px;
-      border: 2px solid rgba(255,255,255,0.2);
-      transition: 0.3s;
-    }
-    .whatsapp-float:hover { transform: scale(1.1); color: #fff; }
-    @media (max-width: 440px) {
-      .whatsapp-float { width: 50px; height: 50px; font-size: 26px; bottom: 16px; left: 16px; }
-      .app-container { border-radius: 20px; height: 100vh; max-height: 100vh; }
-      .balance-card .balance { font-size: 34px; }
-      .action-buttons .btn-action { font-size: 14px; padding: 12px 0; }
-      .tx-detail-modal .modal-box .detail-row { flex-direction: column; align-items: flex-start; gap: 4px; }
-      .tx-detail-modal .modal-box .detail-row .value { text-align: right; max-width: 100%; width: 100%; }
-    }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.5, user-scalable=yes">
+    <title>وضعيات التصوير الشعاعي | ONERAY</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --gold: #f1c40f;
+            --gold-soft: rgba(241, 196, 15, 0.15);
+            --black: #050505;
+            --dark: #0d0d0f;
+            --panel: rgba(255, 255, 255, 0.04);
+            --glass: rgba(255, 255, 255, 0.07);
+            --border: rgba(241, 196, 15, 0.25);
+            --text: #f5f5f5;
+            --muted: #9aa0a6;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Cairo', sans-serif; }
+
+        html { scroll-behavior: smooth; }
+
+        body {
+            background: var(--black);
+            color: var(--text);
+            min-height: 100vh;
+            overflow-x: hidden;
+            position: relative;
+        }
+
+        /* ===== خلفية مستقبلية ===== */
+        body::before {
+            content: '';
+            position: fixed;
+            inset: 0;
+            background:
+                radial-gradient(circle at 15% 20%, rgba(241, 196, 15, 0.10), transparent 45%),
+                radial-gradient(circle at 85% 80%, rgba(241, 196, 15, 0.07), transparent 40%),
+                radial-gradient(circle at 50% 50%, rgba(20, 20, 25, 0.6), var(--black) 80%);
+            z-index: -2;
+            pointer-events: none;
+        }
+
+        body::after {
+            content: '';
+            position: fixed;
+            inset: 0;
+            background-image:
+                linear-gradient(rgba(241, 196, 15, 0.03) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(241, 196, 15, 0.03) 1px, transparent 1px);
+            background-size: 60px 60px;
+            mask-image: radial-gradient(circle at 50% 40%, black 10%, transparent 75%);
+            -webkit-mask-image: radial-gradient(circle at 50% 40%, black 10%, transparent 75%);
+            z-index: -1;
+            pointer-events: none;
+            animation: gridMove 30s linear infinite;
+        }
+
+        @keyframes gridMove {
+            0% { transform: translate(0, 0); }
+            100% { transform: translate(60px, 60px); }
+        }
+
+        .protected-image {
+            -webkit-user-select: none; -moz-user-select: none; -ms-user-select: none;
+            user-select: none; -webkit-touch-callout: none; -webkit-user-drag: none;
+            pointer-events: none; position: relative;
+        }
+
+        .watermark-container {
+            position: relative; display: inline-block; overflow: hidden;
+            border-radius: 14px; width: 100%; cursor: zoom-in; pointer-events: auto;
+        }
+        .watermark-container::before {
+            content: 'ONERAY ACADEMY';
+            position: absolute; top: 50%; left: 50%;
+            transform: translate(-50%, -50%) rotate(-30deg);
+            color: rgba(255, 255, 255, 0.35);
+            font-size: 1.1rem; font-weight: 800; white-space: nowrap;
+            z-index: 10; pointer-events: none;
+            text-shadow: 2px 2px 6px rgba(0, 0, 0, 0.7); letter-spacing: 3px;
+        }
+        .watermark-container::after {
+            content: ''; position: absolute; inset: 0;
+            background: repeating-linear-gradient(45deg,
+                rgba(241, 196, 15, 0.03) 0px, rgba(241, 196, 15, 0.03) 20px,
+                transparent 20px, transparent 40px);
+            z-index: 5; pointer-events: none;
+        }
+        .watermark-container img {
+            width: 100%; height: 200px; object-fit: cover; border-radius: 14px;
+            -webkit-user-drag: none; user-select: none; pointer-events: none;
+            display: block; transition: transform 0.4s ease;
+        }
+        .watermark-container:hover img { transform: scale(1.06); }
+
+        /* ===== Lightbox ===== */
+        .image-lightbox {
+            display: none; position: fixed; inset: 0;
+            background: rgba(0, 0, 0, 0.96); z-index: 99999;
+            align-items: center; justify-content: center; padding: 20px;
+            cursor: zoom-out; backdrop-filter: blur(8px);
+        }
+        .image-lightbox.show { display: flex; }
+        .image-lightbox-content {
+            position: relative; max-width: 90%; max-height: 90%;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+        }
+        .image-lightbox img {
+            max-width: 100%; max-height: 80vh; object-fit: contain;
+            border-radius: 14px; box-shadow: 0 0 60px rgba(241, 196, 15, 0.25);
+            -webkit-user-drag: none; user-select: none; pointer-events: none;
+        }
+        .image-lightbox-close {
+            position: absolute; top: -46px; left: -6px;
+            background: var(--gold); color: #000; border: none;
+            width: 42px; height: 42px; border-radius: 50%;
+            cursor: pointer; font-size: 1.15rem;
+            display: flex; align-items: center; justify-content: center;
+            transition: all 0.3s; z-index: 10;
+        }
+        .image-lightbox-close:hover { background: #fff; transform: rotate(90deg); }
+        .image-lightbox-caption {
+            color: #fff; margin-top: 16px; font-size: 1.05rem;
+            font-weight: 600; text-align: center;
+        }
+        .image-lightbox-watermark {
+            position: absolute; top: 50%; left: 50%;
+            transform: translate(-50%, -50%) rotate(-30deg);
+            color: rgba(255, 255, 255, 0.22);
+            font-size: 2rem; font-weight: 800; white-space: nowrap;
+            pointer-events: none; z-index: 5; letter-spacing: 4px;
+        }
+
+        /* ===== الواجهة الرئيسية ===== */
+        .main-content { display: block; padding: 24px 18px 40px; min-height: 100vh; }
+        .container { max-width: 1050px; margin: 0 auto; }
+
+        .top-bar {
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 14px 22px; margin-bottom: 28px;
+            background: var(--panel); border: 1px solid var(--border);
+            border-radius: 18px; backdrop-filter: blur(14px);
+            box-shadow: 0 8px 30px rgba(0,0,0,0.35);
+        }
+        .brand {
+            display: flex; align-items: center; gap: 12px;
+            font-weight: 800; font-size: 1.05rem; letter-spacing: 1px;
+        }
+        .brand i {
+            color: var(--gold); font-size: 1.5rem;
+            filter: drop-shadow(0 0 8px rgba(241,196,15,0.7));
+            animation: brandPulse 2.5s ease-in-out infinite;
+        }
+        @keyframes brandPulse {
+            0%,100% { opacity: 1; }
+            50% { opacity: 0.55; }
+        }
+        .brand span b { color: var(--gold); }
+
+        .search-container {
+            display: flex; align-items: center; gap: 12px;
+            background: var(--glass); border: 1px solid var(--border);
+            border-radius: 14px; padding: 12px 18px; margin-bottom: 30px;
+            transition: border-color 0.25s, box-shadow 0.25s;
+        }
+        .search-container:focus-within {
+            border-color: var(--gold);
+            box-shadow: 0 0 0 3px var(--gold-soft);
+        }
+        .search-container i { color: var(--gold); font-size: 1.1rem; }
+        .search-container input {
+            flex: 1; border: none; outline: none; background: transparent;
+            color: var(--text); font-size: 1rem; font-weight: 500;
+        }
+        .search-container input::placeholder { color: var(--muted); }
+
+        /* ===== مسرح الروبوت ===== */
+        .robot-stage {
+            position: relative; display: flex; flex-direction: column;
+            align-items: center; justify-content: center;
+            padding: 40px 20px 34px; margin-bottom: 26px;
+            background: radial-gradient(circle at 50% 20%, rgba(241,196,15,0.10), transparent 60%), var(--panel);
+            border: 1px solid var(--border); border-radius: 28px;
+            backdrop-filter: blur(16px); overflow: hidden;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.45), inset 0 0 60px rgba(241,196,15,0.03);
+        }
+        .robot-stage::before {
+            content: ''; position: absolute; inset: -2px; border-radius: 30px;
+            background: conic-gradient(from 0deg, transparent, rgba(241,196,15,0.35), transparent 30%);
+            animation: rotateBorder 8s linear infinite; z-index: -1;
+            opacity: 0.5;
+        }
+        @keyframes rotateBorder {
+            to { transform: rotate(360deg); }
+        }
+
+        /* الروبوت الكبير */
+        .robot-avatar {
+            width: 190px; height: 190px; border-radius: 50%;
+            background: radial-gradient(circle at 35% 25%, #2a2a30, #0b0b0e 70%);
+            border: 4px solid var(--gold);
+            display: flex; align-items: center; justify-content: center;
+            font-size: 6rem; color: var(--gold);
+            position: relative; cursor: pointer;
+            animation: robotFloat 4s ease-in-out infinite;
+            box-shadow:
+                0 0 40px rgba(241,196,15,0.35),
+                0 0 90px rgba(241,196,15,0.15),
+                inset 0 0 40px rgba(241,196,15,0.08);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            flex-shrink: 0;
+        }
+        .robot-avatar:hover {
+            transform: scale(1.05);
+            box-shadow: 0 0 60px rgba(241,196,15,0.55), 0 0 120px rgba(241,196,15,0.25);
+        }
+        .robot-avatar::before,
+        .robot-avatar::after {
+            content: ''; position: absolute; border-radius: 50%;
+            border: 2px solid rgba(241,196,15,0.35);
+            animation: robotRing 3s ease-out infinite;
+        }
+        .robot-avatar::before { inset: -16px; }
+        .robot-avatar::after { inset: -32px; animation-delay: 1.2s; border-color: rgba(241,196,15,0.15); }
+        @keyframes robotRing {
+            0% { transform: scale(0.95); opacity: 0.8; }
+            100% { transform: scale(1.15); opacity: 0; }
+        }
+        @keyframes robotFloat {
+            0%,100% { transform: translateY(0); }
+            50% { transform: translateY(-14px); }
+        }
+        .robot-antenna {
+            position: absolute; top: -14px; left: 50%; transform: translateX(-50%);
+            width: 6px; height: 18px; background: var(--gold); border-radius: 4px;
+        }
+        .robot-antenna::after {
+            content: ''; position: absolute; top: -10px; left: 50%;
+            transform: translateX(-50%); width: 12px; height: 12px;
+            background: var(--gold); border-radius: 50%;
+            box-shadow: 0 0 12px var(--gold);
+            animation: antennaBlink 1.4s ease-in-out infinite;
+        }
+        @keyframes antennaBlink {
+            0%,100% { opacity: 1; box-shadow: 0 0 14px var(--gold); }
+            50% { opacity: 0.35; box-shadow: 0 0 4px var(--gold); }
+        }
+
+        .robot-bubble {
+            margin-top: 26px; max-width: 640px; text-align: center;
+            background: var(--glass); border: 1px solid var(--border);
+            border-radius: 22px; padding: 20px 26px;
+            font-weight: 600; font-size: 1.08rem; line-height: 1.8;
+            color: var(--text); position: relative;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.35);
+            backdrop-filter: blur(10px);
+            animation: bubbleIn 0.5s ease;
+        }
+        @keyframes bubbleIn {
+            from { opacity: 0; transform: translateY(12px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .robot-bubble strong { color: var(--gold); }
+        .robot-bubble .robot-hint {
+            display: block; margin-top: 10px; font-size: 0.85rem;
+            color: var(--muted); font-weight: 400;
+        }
+        .robot-cursor {
+            display: inline-block; width: 2px; height: 1.1em;
+            background: var(--gold); margin-right: 4px;
+            vertical-align: text-bottom; animation: blink 0.9s steps(2) infinite;
+        }
+        @keyframes blink { 50% { opacity: 0; } }
+
+        /* شبكة المناطق */
+        .robot-regions {
+            display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+            gap: 14px; width: 100%; max-width: 900px; margin-top: 28px;
+            animation: fadeUp 0.5s ease;
+        }
+        @keyframes fadeUp {
+            from { opacity: 0; transform: translateY(14px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .robot-region-card {
+            background: var(--panel); border: 1px solid rgba(255,255,255,0.08);
+            border-radius: 18px; padding: 18px 10px; text-align: center;
+            cursor: pointer; transition: all 0.25s ease; position: relative;
+            overflow: hidden;
+        }
+        .robot-region-card::before {
+            content: ''; position: absolute; inset: 0;
+            background: linear-gradient(135deg, transparent, rgba(241,196,15,0.08));
+            opacity: 0; transition: opacity 0.25s;
+        }
+        .robot-region-card:hover {
+            border-color: var(--gold);
+            transform: translateY(-5px) scale(1.02);
+            box-shadow: 0 12px 30px rgba(241,196,15,0.22);
+        }
+        .robot-region-card:hover::before { opacity: 1; }
+        .robot-region-card .rr-icon {
+            display: block; font-size: 2rem; margin-bottom: 8px;
+            filter: drop-shadow(0 0 8px rgba(241,196,15,0.4));
+        }
+        .robot-region-card .rr-name {
+            font-weight: 700; font-size: 0.88rem; color: var(--text);
+            display: block; line-height: 1.3;
+        }
+        .robot-region-card .rr-badge {
+            display: inline-block; margin-top: 8px;
+            background: var(--gold-soft); color: var(--gold);
+            font-size: 0.72rem; font-weight: 700; padding: 3px 12px;
+            border-radius: 12px; border: 1px solid var(--border);
+        }
+        .robot-region-card.selected {
+            background: linear-gradient(135deg, rgba(241,196,15,0.18), rgba(241,196,15,0.05));
+            border-color: var(--gold);
+            box-shadow: 0 0 0 2px var(--gold-soft), 0 0 30px rgba(241,196,15,0.25);
+        }
+
+        .robot-back-btn {
+            background: transparent; color: var(--gold);
+            border: 2px solid var(--gold); padding: 11px 24px;
+            border-radius: 30px; font-weight: 700; font-size: 0.9rem;
+            cursor: pointer; margin-top: 24px; display: inline-flex;
+            align-items: center; gap: 8px; transition: all 0.25s;
+        }
+        .robot-back-btn:hover {
+            background: var(--gold); color: #000;
+            box-shadow: 0 0 25px rgba(241,196,15,0.5);
+        }
+
+        /* ===== قائمة الوضعيات ===== */
+        .position-list {
+            background: var(--panel); border: 1px solid var(--border);
+            border-radius: 24px; padding: 24px; margin-bottom: 30px;
+            display: none; backdrop-filter: blur(14px);
+            box-shadow: 0 15px 50px rgba(0,0,0,0.4);
+            animation: fadeUp 0.4s ease;
+        }
+        .position-list-header {
+            display: flex; justify-content: space-between; align-items: center;
+            border-bottom: 1px solid var(--border); padding-bottom: 16px; margin-bottom: 20px;
+        }
+        .position-list-header h2 {
+            color: var(--text); font-size: 1.35rem;
+            display: flex; align-items: center; gap: 10px;
+        }
+        .position-list-header h2 i { color: var(--gold); }
+        .position-list-header .count {
+            background: var(--gold); padding: 5px 14px; border-radius: 20px;
+            font-size: 0.82rem; color: #000; font-weight: 800;
+            box-shadow: 0 0 18px rgba(241,196,15,0.4);
+        }
+        .position-item {
+            background: var(--glass); padding: 16px 20px; border-radius: 16px;
+            margin-bottom: 12px; cursor: pointer;
+            border: 1px solid rgba(255,255,255,0.06);
+            border-right: 3px solid var(--gold);
+            display: flex; align-items: center; gap: 14px;
+            transition: all 0.25s ease;
+        }
+        .position-item:hover {
+            background: rgba(241,196,15,0.08);
+            transform: translateX(-4px);
+            box-shadow: 0 6px 20px rgba(0,0,0,0.3);
+        }
+        .position-item.active {
+            background: linear-gradient(90deg, rgba(241,196,15,0.18), transparent);
+            border-color: var(--gold);
+        }
+        .position-item .pos-icon { color: var(--gold); font-size: 1.2rem; width: 32px; text-align: center; }
+        .position-item .pos-name { flex: 1; font-weight: 600; color: var(--text); }
+
+        /* ===== صندوق التفاصيل ===== */
+        .detail-box {
+            background: var(--panel); border: 1px solid var(--border);
+            border-radius: 24px; padding: 28px; display: none;
+            margin-bottom: 30px; backdrop-filter: blur(14px);
+            box-shadow: 0 20px 60px rgba(0,0,0,0.45);
+            animation: fadeUp 0.4s ease;
+        }
+        .detail-header {
+            display: flex; align-items: center; gap: 12px;
+            margin-bottom: 22px; padding-bottom: 16px;
+            border-bottom: 2px solid var(--gold);
+        }
+        .detail-header h3 { color: var(--text); font-size: 1.5rem; flex: 1; }
+        .detail-header .badge {
+            background: var(--gold); color: #000; padding: 5px 18px;
+            border-radius: 20px; font-size: 0.78rem; font-weight: 800;
+            box-shadow: 0 0 16px rgba(241,196,15,0.4);
+        }
+        .detail-images { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin: 20px 0; }
+        .detail-images figure {
+            background: var(--glass); border: 1px solid rgba(255,255,255,0.06);
+            border-radius: 18px; padding: 12px; text-align: center;
+            cursor: pointer; transition: border-color 0.25s;
+        }
+        .detail-images figure:hover { border-color: var(--border); }
+        .detail-images figcaption {
+            margin-top: 10px; font-weight: 600; color: var(--muted); font-size: 0.88rem;
+        }
+        .detail-info {
+            display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+            gap: 12px; margin: 22px 0;
+        }
+        .detail-info div {
+            background: var(--glass); padding: 18px 14px; border-radius: 16px;
+            text-align: center; border: 1px solid rgba(255,255,255,0.06);
+            border-bottom: 3px solid var(--gold); transition: transform 0.25s;
+        }
+        .detail-info div:hover { transform: translateY(-3px); }
+        .detail-info strong {
+            display: block; font-size: 0.78rem; color: var(--muted);
+            margin-bottom: 6px; letter-spacing: 1px;
+        }
+        .detail-info span {
+            font-size: 1.25rem; font-weight: 800; color: var(--gold);
+            text-shadow: 0 0 14px rgba(241,196,15,0.4);
+        }
+        .detail-purpose {
+            background: rgba(241,196,15,0.06); padding: 22px;
+            border-radius: 16px; border-right: 4px solid var(--gold); margin-top: 16px;
+        }
+        .detail-purpose h4 {
+            color: var(--gold); margin-bottom: 10px; font-size: 1rem;
+            display: flex; align-items: center; gap: 8px;
+        }
+        .detail-purpose p { color: var(--text); line-height: 1.9; font-size: 0.95rem; }
+
+        /* ===== الاختبار ===== */
+        .quiz-section {
+            background: var(--panel); border: 1px solid var(--border);
+            border-radius: 24px; padding: 26px; margin-top: 30px;
+            backdrop-filter: blur(14px); display: none;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.4);
+        }
+        .quiz-section.show { display: block; animation: fadeUp 0.4s ease; }
+        .quiz-header {
+            display: flex; justify-content: space-between; align-items: center;
+            margin-bottom: 22px; flex-wrap: wrap; gap: 15px;
+        }
+        .quiz-header h2 { color: var(--text); font-size: 1.4rem; display: flex; align-items: center; gap: 10px; }
+        .quiz-header h2 i { color: var(--gold); }
+        .quiz-region-select {
+            padding: 10px 16px; border-radius: 12px;
+            border: 1px solid var(--border); font-size: 0.95rem;
+            font-weight: 600; background: var(--glass); color: var(--text);
+            outline: none; cursor: pointer;
+        }
+        .quiz-region-select option { background: #111; color: #fff; }
+        .quiz-score {
+            background: var(--gold); color: #000; padding: 8px 20px;
+            border-radius: 20px; font-weight: 800; font-size: 0.95rem;
+            box-shadow: 0 0 18px rgba(241,196,15,0.4);
+        }
+        .quiz-question-area { text-align: center; }
+        .quiz-image-container {
+            display: inline-block; max-width: 100%; margin-bottom: 20px;
+            border-radius: 18px; overflow: hidden; position: relative; cursor: zoom-in;
+        }
+        .quiz-image-container img {
+            width: 100%; max-height: 350px; object-fit: contain;
+            border-radius: 18px; -webkit-user-drag: none; user-select: none; pointer-events: none;
+        }
+        .quiz-choices {
+            display: grid; grid-template-columns: 1fr 1fr; gap: 12px;
+            max-width: 620px; margin: 0 auto;
+        }
+        .quiz-choice-btn {
+            background: var(--glass); border: 1px solid rgba(255,255,255,0.1);
+            padding: 16px 20px; border-radius: 14px; font-size: 1rem;
+            font-weight: 600; cursor: pointer; text-align: center;
+            color: var(--text); transition: all 0.2s;
+        }
+        .quiz-choice-btn:hover {
+            border-color: var(--gold);
+            background: rgba(241,196,15,0.1);
+            transform: translateY(-2px);
+        }
+        .quiz-choice-btn.correct {
+            background: #27ae60; color: #fff; border-color: #27ae60;
+            box-shadow: 0 0 20px rgba(39,174,96,0.5);
+        }
+        .quiz-choice-btn.wrong {
+            background: #e74c3c; color: #fff; border-color: #e74c3c;
+            box-shadow: 0 0 20px rgba(231,76,60,0.5);
+        }
+        .quiz-choice-btn:disabled { pointer-events: none; opacity: 0.85; }
+        .quiz-feedback {
+            margin-top: 18px; font-weight: 700; font-size: 1.05rem; min-height: 30px;
+        }
+        .quiz-next-btn {
+            background: var(--gold); color: #000; border: none;
+            padding: 13px 34px; border-radius: 30px; font-size: 1rem;
+            font-weight: 800; cursor: pointer; margin-top: 16px;
+            transition: all 0.25s; box-shadow: 0 0 20px rgba(241,196,15,0.3);
+        }
+        .quiz-next-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 0 30px rgba(241,196,15,0.6);
+        }
+
+        /* ===== الفوتر ===== */
+        .footer {
+            text-align: center; margin-top: 44px; padding: 34px 24px;
+            background: var(--panel); border: 1px solid var(--border);
+            border-radius: 24px; color: var(--text);
+            backdrop-filter: blur(14px);
+        }
+        .footer .credit {
+            font-size: 1rem; font-weight: 600; margin-bottom: 10px;
+            color: var(--muted); line-height: 1.9;
+        }
+        .footer .credit strong { color: var(--gold); }
+        .footer .social-links {
+            display: flex; justify-content: center; gap: 16px; margin: 18px 0; flex-wrap: wrap;
+        }
+        .footer .social-links a {
+            color: #000; text-decoration: none; background: var(--gold);
+            padding: 10px 22px; border-radius: 30px; display: flex;
+            align-items: center; gap: 8px; font-weight: 700; font-size: 0.9rem;
+            transition: all 0.25s; box-shadow: 0 0 18px rgba(241,196,15,0.3);
+        }
+        .footer .social-links a:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 0 28px rgba(241,196,15,0.6);
+        }
+        .footer .coop {
+            margin-top: 18px; padding-top: 18px;
+            border-top: 1px solid var(--border); color: var(--muted); font-size: 0.92rem;
+        }
+        .footer .coop strong { color: var(--gold); }
+
+        .start-quiz-btn {
+            background: transparent; color: var(--gold); border: 2px solid var(--gold);
+            padding: 14px 38px; border-radius: 30px; font-size: 1.1rem;
+            font-weight: 800; cursor: pointer; margin-top: 22px;
+            display: inline-flex; align-items: center; gap: 10px;
+            transition: all 0.3s ease;
+        }
+        .start-quiz-btn:hover {
+            background: var(--gold); color: #000;
+            box-shadow: 0 0 35px rgba(241,196,15,0.55);
+            transform: translateY(-2px);
+        }
+
+        .no-data {
+            text-align: center; color: var(--muted); padding: 24px;
+            font-size: 0.95rem;
+        }
+
+        @media (max-width: 768px) {
+            .detail-images { grid-template-columns: 1fr; }
+            .quiz-choices { grid-template-columns: 1fr; }
+            .robot-avatar { width: 150px; height: 150px; font-size: 4.6rem; }
+            .robot-bubble { font-size: 0.98rem; padding: 16px 18px; }
+            .robot-regions { grid-template-columns: repeat(auto-fill, minmax(125px, 1fr)); }
+            .top-bar { flex-direction: column; gap: 10px; }
+            .image-lightbox-close { top: 10px; left: 10px; }
+            .image-lightbox-watermark { font-size: 1.2rem; }
+        }
+    </style>
 </head>
 <body>
 
-<div id="toastContainer" class="toast-container"></div>
+<!-- الواجهة الرئيسية -->
+<div class="main-content show" id="mainContent">
+    <div class="container">
 
-<!-- ===== EDIT MODAL ===== -->
-<div class="modal-overlay" id="editModal">
-  <div class="modal-box">
-    <h3><i class="fas fa-user-edit" style="color:#f5b041;"></i> تعديل المستخدم</h3>
-    <div class="form-group"><label>الاسم الكامل</label><input type="text" id="editFullName" /></div>
-    <div class="form-group"><label>اسم المستخدم</label><input type="text" id="editUsername" /></div>
-    <div class="form-group"><label>البريد الإلكتروني</label><input type="email" id="editEmail" /></div>
-    <div class="form-group"><label>رقم الهاتف</label><input type="tel" id="editPhone" /></div>
-    <div class="form-group"><label>العنوان</label><input type="text" id="editAddress" /></div>
-    <div class="form-group"><label>الرصيد (د.ع)</label><input type="number" id="editBalance" step="0.01" /></div>
-    <div class="form-group"><label>حالة التحقق</label>
-      <select id="editVerificationStatus">
-        <option value="pending">⏳ قيد المراجعة</option>
-        <option value="approved">✅ مفعّل</option>
-        <option value="rejected">❌ مرفوض</option>
-      </select>
+        <div class="top-bar">
+            <div class="brand">
+                <i class="fas fa-x-ray"></i>
+                <span>وضعيات التصوير الشعاعي | <b>ONERAY</b></span>
+            </div>
+        </div>
+
+        <div class="search-container">
+            <i class="fas fa-search"></i>
+            <input type="text" id="searchInput" placeholder="ابحث عن منطقة ...">
+        </div>
+
+        <!-- مسرح الروبوت -->
+        <div class="robot-stage" id="robotStage">
+            <div class="robot-avatar" id="robotAvatar">
+                <div class="robot-antenna"></div>
+                <i class="fas fa-robot"></i>
+            </div>
+            <div class="robot-bubble" id="robotBubble">
+                <span id="robotMessage"></span>
+                <span class="robot-hint" id="robotHint"></span>
+            </div>
+            <div class="robot-regions" id="robotRegions" style="display:none;"></div>
+            <div id="robotBackContainer" style="text-align:center;"></div>
+        </div>
+
+        <div class="position-list" id="positionList">
+            <div class="position-list-header">
+                <h2><i class="fas fa-list-ul"></i> <span id="regionTitle">الوضعيات</span></h2>
+                <span class="count" id="positionCount">0</span>
+            </div>
+            <div id="positionsContainer"></div>
+        </div>
+
+        <div class="detail-box" id="detailBox">
+            <div class="detail-header">
+                <h3 id="detailTitle">تفاصيل الوضعية</h3>
+                <span class="badge" id="detailBadge">وضعية</span>
+            </div>
+            <div class="detail-images" id="detailImages"></div>
+            <div class="detail-info" id="detailInfo"></div>
+            <div class="detail-purpose" id="detailPurpose"></div>
+        </div>
+
+        <div class="quiz-section" id="quizSection">
+            <div class="quiz-header">
+                <h2><i class="fas fa-question-circle"></i> اختبر نفسك</h2>
+                <select class="quiz-region-select" id="quizRegionSelect">
+                    <option value="">-- اختر المنطقة --</option>
+                </select>
+                <div class="quiz-score" id="quizScore">0 / 0</div>
+            </div>
+            <div id="quizContent"></div>
+        </div>
+
+        <div class="footer">
+            <p class="credit">تم تصميم هذا الموقع من قبل التدريسي <strong>مجتبى كريم</strong> و تقني الاشعة <strong>نور الزهراء علي عبد</strong> و تقني الاشعة <strong>زهراء علي طالب</strong></p>
+            <div class="social-links">
+                <a href="https://www.instagram.com/mojtabakr1.sc?igsh=bXR0YjM1MzJ0NmE0" target="_blank">
+                    <i class="fab fa-instagram"></i> @mojtabakr1.sc
+                </a>
+            </div>
+                        <div class="coop">
+                بالتعاون مع أكاديمية <strong>ONERAY</strong> التعليمية
+                <div class="social-links" style="margin-top: 12px;">
+                    <a href="https://www.instagram.com/oneray.academy?igsh=Y29vd3ZsbWV2bncy" target="_blank">
+                        <i class="fab fa-instagram"></i> @oneray.academy
+                    </a>
+                </div>
+            </div>
+                        <button class="start-quiz-btn" id="startQuizBtn">
+                <i class="fas fa-play-circle"></i> اختبر نفسك
+            </button>
+        </div>
     </div>
-    <div class="modal-actions">
-      <button class="save-btn" id="saveEditBtn"><i class="fas fa-save"></i> حفظ</button>
-      <button class="cancel-btn" id="cancelEditBtn"><i class="fas fa-times"></i> إلغاء</button>
-    </div>
-  </div>
 </div>
 
-<!-- ===== DETAIL MODAL ===== -->
-<div class="modal-overlay tx-detail-modal" id="txDetailModal">
-  <div class="modal-box">
-    <div class="detail-header">
-      <h3><i class="fas fa-receipt"></i> تفاصيل المعاملة</h3>
-      <button class="close-detail" id="closeTxDetail"><i class="fas fa-times"></i></button>
+<!-- نافذة تكبير الصورة -->
+<div class="image-lightbox" id="imageLightbox">
+    <div class="image-lightbox-content">
+        <button class="image-lightbox-close" id="imageLightboxClose">
+            <i class="fas fa-times"></i>
+        </button>
+        <div class="image-lightbox-watermark">ONERAY ACADEMY</div>
+        <img id="lightboxImage" src="" alt="صورة مكبرة" class="protected-image">
+        <div class="image-lightbox-caption" id="lightboxCaption"></div>
     </div>
-    <div class="detail-body" id="txDetailBody"></div>
-  </div>
 </div>
-
-<!-- ===== APP CONTAINER ===== -->
-<div class="app-container" id="appContainer">
-
-  <!-- ===== AUTH SECTION ===== -->
-  <div id="authSection">
-    <div class="auth-header">
-      <div class="logo-icon"><i class="fas fa-wallet"></i></div>
-      <h1>GOOSIQ <span>WALLET</span></h1>
-      <p>محفظتك الإلكترونية الآمنة</p>
-    </div>
-    <div id="authForm">
-      <div class="form-group"><label>البريد الإلكتروني</label><input type="email" id="emailInput" placeholder="example@mail.com" /></div>
-      <div class="form-group"><label>كلمة المرور</label><input type="password" id="passwordInput" placeholder="••••••••" /></div>
-      <div id="signupFields" class="signup-fields">
-        <div class="form-group"><label>الاسم الثلاثي</label><input type="text" id="fullNameInput" placeholder="أحمد محمد علي" /></div>
-        <div class="form-group"><label>اسم المستخدم (إنجليزي، فريد)</label><input type="text" id="usernameInput" placeholder="ahmed_123" dir="ltr" /></div>
-        <div class="form-group"><label>رقم الهاتف <span style="font-weight:400;color:#e67e22;">(077xxxxxxxx)</span></label><input type="tel" id="phoneInput" placeholder="07712345678" maxlength="11" dir="ltr" /></div>
-        <div class="form-group"><label>العنوان</label><textarea id="addressInput" placeholder="المدينة، الشارع..."></textarea></div>
-      </div>
-      <button class="btn-primary" id="actionBtn">تسجيل الدخول</button>
-      <div class="toggle-link">
-        <span id="toggleText">ليس لديك حساب؟</span>
-        <span id="toggleAction">إنشاء حساب جديد</span>
-      </div>
-    </div>
-  </div>
-
-  <!-- ===== APP MAIN ===== -->
-  <div class="app-main" id="appMain">
-    <div class="app-header">
-      <div class="brand">GOOSIQ <span>WALLET</span></div>
-      <div class="user-badge" id="userBadge">
-        <i class="fas fa-user-circle"></i>
-        <span id="headerUsername">مستخدم</span>
-      </div>
-    </div>
-
-    <div class="page-content" id="pageContent">
-      <!-- ===== HOME PAGE ===== -->
-      <div class="page active" id="pageHome">
-        <div class="balance-card">
-          <div class="label">الرصيد الحالي</div>
-          <div class="balance" id="userBalance">0 <span>د.ع</span></div>
-          <div class="wallet-row">
-            <span style="opacity:0.7;">رقم المحفظة</span>
-            <span class="wallet-id" id="walletIdDisplay">G00000000</span>
-            <button class="copy-btn" id="copyWalletBtn" title="نسخ"><i class="fas fa-copy"></i></button>
-          </div>
-        </div>
-        <div class="action-buttons">
-          <button class="btn-action deposit" id="depositBtn" disabled><i class="fas fa-plus-circle"></i> إيداع</button>
-          <button class="btn-action withdraw" id="withdrawBtn" disabled><i class="fas fa-minus-circle"></i> سحب</button>
-        </div>
-        <div class="recent-title"><i class="fas fa-clock" style="color:#f5b041;"></i> آخر العمليات</div>
-        <div id="recentTransactions"><p style="color:#7f8c9b;text-align:center;padding:20px 0;">لا توجد عمليات</p></div>
-      </div>
-
-      <!-- ===== DEPOSIT PAGE ===== -->
-      <div class="page deposit-page" id="pageDeposit">
-        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
-          <h2 style="font-size:20px; color:#1a2744;"><i class="fas fa-plus-circle" style="color:#27ae60;"></i> إيداع أموال</h2>
-          <button class="back-btn" id="depositBackBtn"><i class="fas fa-arrow-right"></i> رجوع</button>
-        </div>
-        <div style="display:flex; justify-content:space-between; padding:10px 0; border-bottom:1px solid #eef2f7;">
-          <span style="font-weight:700; color:#7f8c9b;"><i class="fas fa-user"></i> من (رقم هاتفك)</span>
-          <span style="font-weight:700; color:#1a2744; background:#f0f2f8; padding:4px 14px; border-radius:30px; direction:ltr;" id="depositFromPhone">-</span>
-        </div>
-        <div style="display:flex; justify-content:space-between; padding:10px 0; border-bottom:1px solid #eef2f7; margin-bottom:16px;">
-          <span style="font-weight:700; color:#7f8c9b;"><i class="fas fa-arrow-left"></i> إلى</span>
-          <span style="font-weight:700; color:#e67e22; background:#fef5e7; padding:4px 14px; border-radius:30px; direction:ltr;">07732773761</span>
-        </div>
-        <div style="background:#f8f9fc; border-radius:16px; padding:16px; border:2px solid #eef2f7; margin-bottom:16px;">
-          <label style="font-weight:700; font-size:14px; color:#1a2744; display:block; margin-bottom:6px;">💰 المبلغ (دينار عراقي)</label>
-          <div style="display:flex; align-items:center; gap:12px;">
-            <button id="depositMinusBtn" style="width:40px; height:40px; border:none; border-radius:50%; background:#fff; font-size:20px; font-weight:700; cursor:pointer; border:2px solid #eef2f7;"><i class="fas fa-minus"></i></button>
-            <input type="number" id="depositAmount" value="10000" min="10000" max="60000" step="1000" style="flex:1; border:none; background:transparent; font-size:28px; font-weight:900; color:#1a2744; text-align:center; padding:8px 0; outline:none;" />
-            <button id="depositPlusBtn" style="width:40px; height:40px; border:none; border-radius:50%; background:#fff; font-size:20px; font-weight:700; cursor:pointer; border:2px solid #eef2f7;"><i class="fas fa-plus"></i></button>
-          </div>
-          <div style="display:flex; justify-content:space-between; font-size:13px; color:#7f8c9b; margin-top:4px;">
-            <span>الحد الأدنى: 10,000 د.ع</span>
-            <span>الحد الأقصى: 60,000 د.ع</span>
-          </div>
-        </div>
-        <div style="background:#1a2744; padding:14px 18px; border-radius:16px; display:flex; justify-content:space-between; align-items:center; margin:16px 0; direction:ltr;">
-          <span id="depositCode" style="font-family:'Courier New',monospace; font-size:18px; font-weight:900; color:#f5b041;">*123*10000*07732773761#</span>
-          <button id="copyDepositCode" style="background:rgba(255,255,255,0.08); border:none; color:#fff; padding:6px 16px; border-radius:30px; font-weight:700; cursor:pointer;"><i class="fas fa-copy"></i> نسخ</button>
-        </div>
-        <div style="background:linear-gradient(135deg, #eafaf1, #d5f5e3); border-radius:16px; padding:14px; text-align:center; margin:12px 0;">
-          <div style="font-size:14px; color:#1a2744; font-weight:700;">المبلغ الذي سيضاف لمحفظتك</div>
-          <div style="font-size:28px; font-weight:900; color:#27ae60;" id="depositNet">10,000 د.ع</div>
-        </div>
-        <div id="depositFileUpload" style="border:2px dashed #d5dbe8; border-radius:16px; padding:20px; text-align:center; cursor:pointer; margin:12px 0; background:#fafbfd;">
-          <div style="font-size:36px; color:#f5b041; margin-bottom:6px;"><i class="fas fa-cloud-upload-alt"></i></div>
-          <div style="font-weight:700; color:#1a2744; margin-top:4px;" id="depositFileName">انقر لرفع صورة التحويل</div>
-          <div style="font-size:13px; color:#7f8c9b;">(jpg, png, max 30KB)</div>
-          <input type="file" id="depositFileInput" accept="image/*" style="display:none;" />
-        </div>
-        <button id="submitDepositBtn" style="width:100%; padding:16px; border:none; border-radius:16px; font-size:18px; font-weight:700; background:linear-gradient(135deg, #27ae60, #2ecc71); color:#fff; cursor:pointer; margin-top:16px; box-shadow:0 6px 20px rgba(39,174,96,0.25);">
-          <i class="fas fa-check"></i> إتمام الإيداع
-        </button>
-        <button id="cancelDepositBtn" style="width:100%; padding:14px; border:none; border-radius:16px; font-size:16px; font-weight:700; background:#eef2f7; color:#7f8c9b; cursor:pointer; margin-top:8px;">
-          <i class="fas fa-times"></i> إلغاء
-        </button>
-      </div>
-
-      <!-- ===== WITHDRAW PAGE ===== -->
-      <div class="page withdraw-page" id="pageWithdraw">
-        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
-          <h2 style="font-size:20px; color:#1a2744;"><i class="fas fa-minus-circle" style="color:#e67e22;"></i> سحب أموال</h2>
-          <button class="back-btn" id="withdrawBackBtn"><i class="fas fa-arrow-right"></i> رجوع</button>
-        </div>
-        <div style="background:#fff; border-radius:24px; padding:24px 20px; box-shadow:0 8px 30px rgba(0,0,0,0.12); margin-bottom:16px; border-right:4px solid #f5b041;">
-          <div style="text-align:center; font-size:48px; color:#e67e22; margin-bottom:12px;"><i class="fas fa-hand-holding-usd"></i></div>
-          <div style="font-size:20px; font-weight:900; color:#1a2744; text-align:center; margin-bottom:4px;">طلب سحب</div>
-          <div style="font-size:14px; color:#7f8c9b; text-align:center; margin-bottom:20px;">أدخل المبلغ الذي تريد سحبه</div>
-          <div style="display:flex; justify-content:space-between; padding:10px 0; border-bottom:1px solid #eef2f7;">
-            <span style="font-weight:700; color:#7f8c9b;"><i class="fas fa-user"></i> رقم المحفظة</span>
-            <span style="font-weight:700; color:#1a2744; background:#f0f2f8; padding:2px 14px; border-radius:30px;" id="withdrawWalletId">G00000000</span>
-          </div>
-          <div style="display:flex; justify-content:space-between; padding:10px 0;">
-            <span style="font-weight:700; color:#7f8c9b;"><i class="fas fa-phone"></i> رقم الهاتف</span>
-            <span style="font-weight:700; color:#1a2744; background:#f0f2f8; padding:2px 14px; border-radius:30px;" id="withdrawUserPhone">-</span>
-          </div>
-        </div>
-        <div style="background:#f8f9fc; border-radius:16px; padding:16px; border:2px solid #eef2f7; margin-bottom:16px;">
-          <label style="font-weight:700; font-size:14px; color:#1a2744; display:block; margin-bottom:6px;">💰 المبلغ (دينار عراقي)</label>
-          <div style="display:flex; align-items:center; gap:12px;">
-            <button id="withdrawMinusBtn" style="width:40px; height:40px; border:none; border-radius:50%; background:#fff; font-size:20px; font-weight:700; cursor:pointer; border:2px solid #eef2f7;"><i class="fas fa-minus"></i></button>
-            <input type="number" id="withdrawAmount" value="10000" min="10000" step="1000" style="flex:1; border:none; background:transparent; font-size:28px; font-weight:900; color:#1a2744; text-align:center; padding:8px 0; outline:none;" />
-            <button id="withdrawPlusBtn" style="width:40px; height:40px; border:none; border-radius:50%; background:#fff; font-size:20px; font-weight:700; cursor:pointer; border:2px solid #eef2f7;"><i class="fas fa-plus"></i></button>
-          </div>
-          <div style="display:flex; justify-content:space-between; font-size:13px; color:#7f8c9b; margin-top:4px;">
-            <span>الحد الأدنى: 10,000 د.ع</span>
-            <span>الرصيد المتاح: <span id="withdrawAvailableBalance">0</span> د.ع</span>
-          </div>
-        </div>
-        <button id="submitWithdrawBtn" style="width:100%; padding:16px; border:none; border-radius:16px; font-size:18px; font-weight:700; background:linear-gradient(135deg, #e67e22, #f5b041); color:#fff; cursor:pointer; box-shadow:0 6px 20px rgba(230,126,34,0.25);">
-          <i class="fas fa-check"></i> إتمام السحب
-        </button>
-        <button id="cancelWithdrawBtn" style="width:100%; padding:14px; border:none; border-radius:16px; font-size:16px; font-weight:700; background:#eef2f7; color:#7f8c9b; cursor:pointer; margin-top:8px;">
-          <i class="fas fa-times"></i> إلغاء
-        </button>
-      </div>
-
-      <!-- ===== COMPLETION PAGE ===== -->
-      <div class="page" id="pageCompletion">
-        <h2 style="font-size:20px; margin-bottom:16px; color:#1a2744;"><i class="fas fa-user-edit" style="color:#f5b041;"></i> إكمال الملف الشخصي</h2>
-        <div style="background:#fff; border-radius:24px; padding:24px 20px; box-shadow:0 8px 30px rgba(0,0,0,0.12);">
-          <p style="color:#7f8c9b; margin-bottom:16px; font-size:15px;">يرجى اختيار طريقة سحب الأموال وإدخال المعلومات المطلوبة</p>
-          <div style="display:flex; align-items:center; gap:16px; padding:16px; border:2px solid #e2e6ee; border-radius:16px; margin-bottom:16px; background:#fcf9f0; border-color:#f5b041;">
-            <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRk-9frRdmbyzG5YY2TeDy6O1Yihi0WLWfrVk3fYWHw5w&s" alt="مصرف الرافدين" style="width:48px; height:48px; border-radius:12px; object-fit:cover;" />
-            <div style="flex:1;"><div style="font-weight:700; font-size:16px; color:#1a2744;">مصرف الرافدين (سوبر كي)</div><div style="font-size:13px; color:#7f8c9b;">تحويل بنكي عبر تطبيق سوبر كي</div></div>
-            <span style="color:#27ae60; font-size:20px;"><i class="fas fa-check-circle"></i></span>
-          </div>
-          <div class="form-group"><label>اسم صاحب البطاقة <span style="color:#e74c3c;">*</span></label><input type="text" id="cardHolderName" placeholder="أدخل الاسم كما هو مكتوب على البطاقة" /></div>
-          <div class="form-group"><label>رقم الحساب في سوبر كي <span style="color:#e74c3c;">*</span></label><input type="text" id="accountNumber" placeholder="أدخل رقم الحساب (8-12 رقم)" dir="ltr" maxlength="12" /><div style="font-size:13px; color:#7f8c9b; margin-top:4px;">يجب أن يتكون من 8 إلى 12 رقمًا</div></div>
-          <button id="completeProfileBtn" style="width:100%; padding:14px; border:none; border-radius:16px; font-size:18px; font-weight:700; background:linear-gradient(135deg, #27ae60, #2ecc71); color:#fff; cursor:pointer; margin-top:16px; box-shadow:0 6px 20px rgba(39,174,96,0.25);">
-            <i class="fas fa-check"></i> إكمال الملف
-          </button>
-        </div>
-      </div>
-
-      <!-- ===== PENDING PAGE ===== -->
-      <div class="page" id="pagePending">
-        <div style="background:#fff; border-radius:24px; padding:32px 24px; text-align:center; box-shadow:0 8px 30px rgba(0,0,0,0.12);">
-          <div style="font-size:64px; color:#f5b041; margin-bottom:16px;"><i class="fas fa-clock"></i></div>
-          <h3 style="font-size:22px; color:#1a2744; margin-bottom:8px;">⏳ قيد المراجعة</h3>
-          <p style="color:#7f8c9b; font-size:16px; line-height:1.6;">تم استلام طلبك بنجاح.<br />سيتم مراجعة معلوماتك من قبل فريق الدعم<br /><strong>من ساعة إلى 24 ساعة</strong><br /><br />سيتم إشعارك عند اكتمال المراجعة.</p>
-        </div>
-      </div>
-
-      <!-- ===== PROFILE PAGE ===== -->
-      <div class="page" id="pageProfile">
-        <h2 style="font-size:20px; margin-bottom:16px; color:#1a2744;"><i class="fas fa-user-circle" style="color:#f5b041;"></i> معلوماتي الشخصية</h2>
-        <div style="background:#fff; border-radius:24px; padding:24px 20px; box-shadow:0 8px 30px rgba(0,0,0,0.12);">
-          <div style="display:flex; justify-content:space-between; padding:12px 0; border-bottom:1px solid #f0f2f8;"><span style="font-weight:700; color:#7f8c9b;">الاسم الكامل</span><span style="font-weight:700; color:#1a2744;" id="profileFullName">-</span></div>
-          <div style="display:flex; justify-content:space-between; padding:12px 0; border-bottom:1px solid #f0f2f8;"><span style="font-weight:700; color:#7f8c9b;">اسم المستخدم</span><span style="font-weight:700; color:#1a2744;" id="profileUsername">-</span></div>
-          <div style="display:flex; justify-content:space-between; padding:12px 0; border-bottom:1px solid #f0f2f8;"><span style="font-weight:700; color:#7f8c9b;">البريد الإلكتروني</span><span style="font-weight:700; color:#1a2744;" id="profileEmail">-</span></div>
-          <div style="display:flex; justify-content:space-between; padding:12px 0; border-bottom:1px solid #f0f2f8;"><span style="font-weight:700; color:#7f8c9b;">رقم الهاتف</span><span style="font-weight:700; color:#1a2744;" id="profilePhone">-</span></div>
-          <div style="display:flex; justify-content:space-between; padding:12px 0; border-bottom:1px solid #f0f2f8;"><span style="font-weight:700; color:#7f8c9b;">العنوان</span><span style="font-weight:700; color:#1a2744;" id="profileAddress">-</span></div>
-          <div style="display:flex; justify-content:space-between; padding:12px 0; border-bottom:1px solid #f0f2f8;"><span style="font-weight:700; color:#7f8c9b;">رقم المحفظة</span><span style="font-weight:700; color:#1a2744;" id="profileWallet">-</span></div>
-          <div style="display:flex; justify-content:space-between; padding:12px 0; border-bottom:1px solid #f0f2f8;"><span style="font-weight:700; color:#7f8c9b;">طريقة السحب</span><span style="font-weight:700; color:#1a2744;" id="profilePaymentMethod">-</span></div>
-          <div style="display:flex; justify-content:space-between; padding:12px 0;"><span style="font-weight:700; color:#7f8c9b;">حالة التحقق</span><span style="font-weight:700; color:#1a2744;" id="profileStatus">-</span></div>
-          <div style="display:flex; justify-content:space-between; padding:12px 0; border-top:1px solid #f0f2f8; margin-top:8px; padding-top:12px;"><span style="font-weight:700; color:#7f8c9b;">عمليات الإيداع اليومية</span><span style="font-weight:700; color:#1a2744;" id="dailyDepositCount">0 / 5</span></div>
-        </div>
-      </div>
-
-      <!-- ===== USER TRANSACTIONS PAGE ===== -->
-      <div class="page" id="pageTransactions">
-        <h2 style="font-size:20px; margin-bottom:16px; color:#1a2744;"><i class="fas fa-exchange-alt" style="color:#f5b041;"></i> جميع العمليات</h2>
-        <div id="allTransactions"><p style="color:#7f8c9b;text-align:center;padding:20px 0;">لا توجد عمليات مسجلة</p></div>
-      </div>
-
-      <!-- ===== ADMIN PAGES ===== -->
-      <div class="page" id="pageAdminHome">
-        <h2 style="font-size:20px; margin-bottom:16px; color:#1a2744;"><i class="fas fa-chart-pie" style="color:#f5b041;"></i> لوحة التحكم</h2>
-        <div class="stats-grid">
-          <div class="stat-card blue"><div class="stat-icon">👥</div><div class="stat-number" id="statUsers">0</div><div class="stat-label">إجمالي المستخدمين</div></div>
-          <div class="stat-card green"><div class="stat-icon">📈</div><div class="stat-number" id="statDeposits">0</div><div class="stat-label">إجمالي الإيداعات</div></div>
-          <div class="stat-card orange"><div class="stat-icon">📉</div><div class="stat-number" id="statWithdrawals">0</div><div class="stat-label">إجمالي السحوبات</div></div>
-          <div class="stat-card purple"><div class="stat-icon">💳</div><div class="stat-number" id="statTotalBalance">0</div><div class="stat-label">إجمالي الأرصدة</div></div>
-        </div>
-        <div class="filter-section">
-          <select id="filterMonth">
-            <option value="01">يناير</option><option value="02">فبراير</option><option value="03">مارس</option>
-            <option value="04">أبريل</option><option value="05">مايو</option><option value="06">يونيو</option>
-            <option value="07">يوليو</option><option value="08">أغسطس</option><option value="09">سبتمبر</option>
-            <option value="10">أكتوبر</option><option value="11">نوفمبر</option><option value="12">ديسمبر</option>
-          </select>
-          <select id="filterYear">
-            <option value="2020">2020</option><option value="2021">2021</option><option value="2022">2022</option>
-            <option value="2023">2023</option><option value="2024">2024</option><option value="2025">2025</option>
-            <option value="2026">2026</option><option value="2027">2027</option><option value="2028">2028</option>
-            <option value="2029">2029</option><option value="2030">2030</option><option value="2031">2031</option>
-            <option value="2032">2032</option><option value="2033">2033</option><option value="2034">2034</option>
-            <option value="2035">2035</option>
-          </select>
-          <button class="filter-btn" id="applyFilterBtn"><i class="fas fa-filter"></i> تطبيق</button>
-        </div>
-        <div style="background:#fff; border-radius:16px; padding:16px; box-shadow:0 8px 30px rgba(0,0,0,0.12);">
-          <p style="font-weight:700; color:#1a2744; margin-bottom:8px;"><i class="fas fa-calendar-alt" style="color:#f5b041;"></i> إحصائيات الشهر المحدد</p>
-          <div style="display:flex; justify-content:space-around; text-align:center;">
-            <div><div style="font-size:13px; color:#7f8c9b;">الإيداعات</div><div style="font-size:20px; font-weight:900; color:#27ae60;" id="monthDeposits">0 د.ع</div></div>
-            <div><div style="font-size:13px; color:#7f8c9b;">السحوبات</div><div style="font-size:20px; font-weight:900; color:#e67e22;" id="monthWithdrawals">0 د.ع</div></div>
-            <div><div style="font-size:13px; color:#7f8c9b;">صافي</div><div style="font-size:20px; font-weight:900; color:#1a2744;" id="monthNet">0 د.ع</div></div>
-          </div>
-        </div>
-      </div>
-
-      <div class="page" id="pageAdminUsers">
-        <h2 style="font-size:20px; margin-bottom:16px; color:#1a2744;"><i class="fas fa-users" style="color:#f5b041;"></i> إدارة المستخدمين</h2>
-        <div class="admin-search">
-          <input type="text" id="adminSearchInput" placeholder="🔍 بحث عن مستخدم (اسم، بريد، هاتف...)" />
-          <button class="search-btn" id="adminSearchBtn"><i class="fas fa-search"></i></button>
-        </div>
-        <div id="adminUserList" style="max-height:300px; overflow-y:auto;"></div>
-      </div>
-
-      <div class="page" id="pageAdminVerifications">
-        <h2 style="font-size:20px; margin-bottom:16px; color:#1a2744;"><i class="fas fa-file-signature" style="color:#f5b041;"></i> طلبات التوثيق</h2>
-        <div id="adminVerificationList"></div>
-      </div>
-
-      <div class="page" id="pageAdminTransactions">
-        <h2 style="font-size:20px; margin-bottom:16px; color:#1a2744;"><i class="fas fa-exchange-alt" style="color:#f5b041;"></i> عمليات الإيداع والسحب</h2>
-        <div class="admin-tx-search">
-          <div class="search-group">
-            <label><i class="fas fa-search"></i> بحث نصي</label>
-            <input type="text" id="txSearchText" placeholder="اسم، هاتف، اسم مستخدم..." />
-          </div>
-          <div class="search-group">
-            <label><i class="fas fa-calendar-alt"></i> تاريخ</label>
-            <input type="date" id="txSearchDate" />
-          </div>
-          <div class="search-actions">
-            <button class="clear-filter-btn" id="clearTxFilterBtn"><i class="fas fa-times"></i> مسح</button>
-          </div>
-        </div>
-        <div id="adminTransactionList"></div>
-      </div>
-    </div>
-
-    <!-- ===== BOTTOM NAV ===== -->
-    <div class="bottom-nav" id="bottomNav"></div>
-  </div>
-</div>
-
-<!-- ===== WHATSAPP FLOATING BUTTON ===== -->
-<a href="https://wa.me/message/LPX3FF4TG4XWK1" target="_blank" class="whatsapp-float" title="تواصل معنا عبر واتساب">
-  <i class="fab fa-whatsapp"></i>
-</a>
-
-<!-- ===== FIREBASE SDK ===== -->
-<script type="importmap">
-  {
-    "imports": {
-      "firebase/app": "https://www.gstatic.com/firebasejs/12.18.0/firebase-app.js",
-      "firebase/auth": "https://www.gstatic.com/firebasejs/12.18.0/firebase-auth.js",
-      "firebase/database": "https://www.gstatic.com/firebasejs/12.18.0/firebase-database.js"
-    }
-  }
-</script>
 
 <script type="module">
-  // ============================================================
-  //  IMPORTS
-  // ============================================================
-  import { initializeApp } from "firebase/app";
-  import {
-    getAuth,
-    createUserWithEmailAndPassword,
-    signInWithEmailAndPassword,
-    onAuthStateChanged,
-    signOut,
-    updateProfile
-  } from "firebase/auth";
-  import { getDatabase, ref, set, get, onValue, update, push, remove } from "firebase/database";
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/12.16.0/firebase-app.js";
+    import { getDatabase, ref, onValue, set, get, update } from "https://www.gstatic.com/firebasejs/12.16.0/firebase-database.js";
+    import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.16.0/firebase-auth.js";
 
-  // ============================================================
-  //  FIREBASE CONFIG
-  // ============================================================
-  const firebaseConfig = {
-    apiKey: "AIzaSyBSo7G18kfFr-Rc48AD-IWk7APqXk33X-o",
-    authDomain: "asaiseel.firebaseapp.com",
-    databaseURL: "https://asaiseel-default-rtdb.firebaseio.com",
-    projectId: "asaiseel",
-    storageBucket: "asaiseel.firebasestorage.app",
-    messagingSenderId: "1044352875279",
-    appId: "1:1044352875279:web:f67a378862d5010d2c5c7a",
-    measurementId: "G-9F2T849TMK"
-  };
+    const firebaseConfig = {
+        apiKey: "AIzaSyDnNv3tekrHervtMjYk2nv0vluN83dTOrw",
+        authDomain: "xraystop-d13d3.firebaseapp.com",
+        databaseURL: "https://xraystop-d13d3-default-rtdb.firebaseio.com",
+        projectId: "xraystop-d13d3",
+        storageBucket: "xraystop-d13d3.firebasestorage.app",
+        messagingSenderId: "597257727564",
+        appId: "1:597257727564:web:198421df2f0b5206b04ee9"
+    };
 
-  const app = initializeApp(firebaseConfig);
-  const auth = getAuth(app);
-  const database = getDatabase(app);
+    const app = initializeApp(firebaseConfig);
+    const db = getDatabase(app);
+    const auth = getAuth(app);
 
-  // ============================================================
-  //  DOM REFS
-  // ============================================================
-  const authSection = document.getElementById('authSection');
-  const appMain = document.getElementById('appMain');
-  const emailInput = document.getElementById('emailInput');
-  const passwordInput = document.getElementById('passwordInput');
-  const fullNameInput = document.getElementById('fullNameInput');
-  const usernameInput = document.getElementById('usernameInput');
-  const phoneInput = document.getElementById('phoneInput');
-  const addressInput = document.getElementById('addressInput');
-  const signupFields = document.getElementById('signupFields');
-  const actionBtn = document.getElementById('actionBtn');
-  const toggleText = document.getElementById('toggleText');
-  const toggleAction = document.getElementById('toggleAction');
-  const headerUsername = document.getElementById('headerUsername');
-  const userBadge = document.getElementById('userBadge');
-  const bottomNav = document.getElementById('bottomNav');
-  const copyWalletBtn = document.getElementById('copyWalletBtn');
-  const depositBtn = document.getElementById('depositBtn');
-  const withdrawBtn = document.getElementById('withdrawBtn');
-  const userBalance = document.getElementById('userBalance');
-  const walletIdDisplay = document.getElementById('walletIdDisplay');
-  const recentTransactions = document.getElementById('recentTransactions');
-  const allTransactions = document.getElementById('allTransactions');
-  // Profile
-  const profileFullName = document.getElementById('profileFullName');
-  const profileUsername = document.getElementById('profileUsername');
-  const profileEmail = document.getElementById('profileEmail');
-  const profilePhone = document.getElementById('profilePhone');
-  const profileAddress = document.getElementById('profileAddress');
-  const profileWallet = document.getElementById('profileWallet');
-  const profilePaymentMethod = document.getElementById('profilePaymentMethod');
-  const profileStatus = document.getElementById('profileStatus');
-  const dailyDepositCount = document.getElementById('dailyDepositCount');
-  // Deposit
-  const depositFromPhone = document.getElementById('depositFromPhone');
-  const depositAmount = document.getElementById('depositAmount');
-  const depositCode = document.getElementById('depositCode');
-  const depositNet = document.getElementById('depositNet');
-  const depositFileUpload = document.getElementById('depositFileUpload');
-  const depositFileInput = document.getElementById('depositFileInput');
-  const depositFileName = document.getElementById('depositFileName');
-  const submitDepositBtn = document.getElementById('submitDepositBtn');
-  const cancelDepositBtn = document.getElementById('cancelDepositBtn');
-  const copyDepositCode = document.getElementById('copyDepositCode');
-  const depositMinusBtn = document.getElementById('depositMinusBtn');
-  const depositPlusBtn = document.getElementById('depositPlusBtn');
-  const depositBackBtn = document.getElementById('depositBackBtn');
-  // Withdraw
-  const withdrawAmount = document.getElementById('withdrawAmount');
-  const withdrawAvailableBalance = document.getElementById('withdrawAvailableBalance');
-  const submitWithdrawBtn = document.getElementById('submitWithdrawBtn');
-  const cancelWithdrawBtn = document.getElementById('cancelWithdrawBtn');
-  const withdrawMinusBtn = document.getElementById('withdrawMinusBtn');
-  const withdrawPlusBtn = document.getElementById('withdrawPlusBtn');
-  const withdrawBackBtn = document.getElementById('withdrawBackBtn');
-  const withdrawWalletId = document.getElementById('withdrawWalletId');
-  const withdrawUserPhone = document.getElementById('withdrawUserPhone');
-  // Completion
-  const cardHolderName = document.getElementById('cardHolderName');
-  const accountNumber = document.getElementById('accountNumber');
-  const completeProfileBtn = document.getElementById('completeProfileBtn');
-  // Admin
-  const statUsers = document.getElementById('statUsers');
-  const statDeposits = document.getElementById('statDeposits');
-  const statWithdrawals = document.getElementById('statWithdrawals');
-  const statTotalBalance = document.getElementById('statTotalBalance');
-  const monthDeposits = document.getElementById('monthDeposits');
-  const monthWithdrawals = document.getElementById('monthWithdrawals');
-  const monthNet = document.getElementById('monthNet');
-  const filterMonth = document.getElementById('filterMonth');
-  const filterYear = document.getElementById('filterYear');
-  const applyFilterBtn = document.getElementById('applyFilterBtn');
-  const adminSearchInput = document.getElementById('adminSearchInput');
-  const adminSearchBtn = document.getElementById('adminSearchBtn');
-  const adminUserList = document.getElementById('adminUserList');
-  const adminVerificationList = document.getElementById('adminVerificationList');
-  const adminTransactionList = document.getElementById('adminTransactionList');
-  const editModal = document.getElementById('editModal');
-  const editFullName = document.getElementById('editFullName');
-  const editUsername = document.getElementById('editUsername');
-  const editEmail = document.getElementById('editEmail');
-  const editPhone = document.getElementById('editPhone');
-  const editAddress = document.getElementById('editAddress');
-  const editBalance = document.getElementById('editBalance');
-  const editVerificationStatus = document.getElementById('editVerificationStatus');
-  const saveEditBtn = document.getElementById('saveEditBtn');
-  const cancelEditBtn = document.getElementById('cancelEditBtn');
-  // Detail
-  const txDetailModal = document.getElementById('txDetailModal');
-  const txDetailBody = document.getElementById('txDetailBody');
-  const closeTxDetail = document.getElementById('closeTxDetail');
-  // Search
-  const txSearchText = document.getElementById('txSearchText');
-  const txSearchDate = document.getElementById('txSearchDate');
-  const clearTxFilterBtn = document.getElementById('clearTxFilterBtn');
+    const R2_WORKER_URL = 'https://frosty-field-ea93.mojtabakareem77.workers.dev';
 
-  // ============================================================
-  //  STATE
-  // ============================================================
-  let currentUser = null;
-  let currentUserData = null;
-  let isAdmin = false;
-  let toastTimeout = null;
-  let editingUid = null;
-  let allUsers = {};
-  let allTransactionsData = {};
-  let selectedFile = null;
-  let txFilter = { text: '', date: '' };
-
-  const TO_PHONE = '07732773761';
-  const DAILY_LIMIT = 5;
-  const MIN_AMOUNT = 10000;
-  const MAX_AMOUNT = 60000;
-  const FEE_PERCENT = 0.15;
-  const WORKER_URL = 'https://misty-math-b171.mojtabakareem77.workers.dev/upload';
-
-  // ============================================================
-  //  HELPERS
-  // ============================================================
-  function sanitizeKey(str) { return str.replace(/\./g, '_dot_').replace(/@/g, '_at_'); }
-
-  function showToast(message, type = 'error') {
-    const container = document.getElementById('toastContainer');
-    container.innerHTML = '';
-    const toast = document.createElement('div');
-    toast.className = `toast ${type === 'success' ? 'success' : ''}`;
-    toast.innerHTML = `
-      <span class="close-toast" onclick="this.parentElement.remove()">✕</span>
-      ${message}
-    `;
-    container.appendChild(toast);
-    if (toastTimeout) clearTimeout(toastTimeout);
-    toastTimeout = setTimeout(() => {
-      if (toast.parentElement) toast.remove();
-    }, 5000);
-  }
-
-  function clearToast() {
-    const container = document.getElementById('toastContainer');
-    container.innerHTML = '';
-    if (toastTimeout) { clearTimeout(toastTimeout); toastTimeout = null; }
-  }
-
-  function isAdminEmail(email) { return email && email.toLowerCase().endsWith('@admin.com'); }
-
-  function formatCurrency(amount) { return Number(amount).toFixed(2) + ' د.ع'; }
-
-  function isValidUsername(str) { return /^[a-zA-Z0-9_]{3,20}$/.test(str); }
-  function hasThreeNames(str) { return str.trim().split(/\s+/).length >= 3; }
-  function isValidPhone(str) { return /^077\d{8}$/.test(str); }
-  function isValidAccountNumber(str) { return /^\d{8,12}$/.test(str); }
-
-  function generateDepositCode(amount) {
-    return `*123*${amount}*${TO_PHONE}#`;
-  }
-
-  function calculateNetAmount(amount) {
-    return Math.round(amount * (1 - FEE_PERCENT));
-  }
-
-  function formatDateForComparison(dateStr) {
-    if (!dateStr) return '';
-    try {
-      const d = new Date(dateStr);
-      return d.toISOString().split('T')[0];
-    } catch (e) {
-      return '';
-    }
-  }
-
-  // ============================================================
-  //  DATABASE HELPERS
-  // ============================================================
-  async function isFieldUnique(path, value) {
-    if (!value) return false;
-    let key = value.toLowerCase();
-    if (path === 'emails') key = sanitizeKey(key);
-    const refPath = ref(database, path + '/' + key);
-    try {
-      const snap = await get(refPath);
-      return !snap.exists();
-    } catch (e) {
-      if (e.message.includes('permission_denied')) return true;
-      showToast('حدث خطأ في التحقق من البيانات.', 'error');
-      return false;
-    }
-  }
-
-  async function generateUniqueWalletId() {
-    for (let i = 0; i < 10; i++) {
-      const num = Math.floor(10000000 + Math.random() * 90000000);
-      const wid = 'G' + num;
-      const snap = await get(ref(database, 'wallets/' + wid));
-      if (!snap.exists()) return wid;
-    }
-    return 'G' + Date.now().toString().slice(-8);
-  }
-
-  // ============================================================
-  //  COMPRESS IMAGE (max 30KB)
-  // ============================================================
-  async function compressImage(file, maxSizeKB = 30) {
-    return new Promise((resolve, reject) => {
-      const reader = new FileReader();
-      reader.onload = function(e) {
-        const img = new Image();
-        img.onload = function() {
-          const canvas = document.createElement('canvas');
-          let width = img.width;
-          let height = img.height;
-          let quality = 0.9;
-          let compressedDataUrl;
-
-          const compress = () => {
-            canvas.width = width;
-            canvas.height = height;
-            const ctx = canvas.getContext('2d');
-            ctx.drawImage(img, 0, 0, width, height);
-            compressedDataUrl = canvas.toDataURL('image/jpeg', quality);
-            const sizeInKB = Math.round((compressedDataUrl.length * 3/4) / 1024);
-            if (sizeInKB > maxSizeKB && quality > 0.1) {
-              quality -= 0.05;
-              if (quality < 0.1) quality = 0.1;
-              compress();
-            } else {
-              fetch(compressedDataUrl)
-                .then(res => res.blob())
-                .then(blob => resolve(blob))
-                .catch(reject);
+    function getR2Url(imagePath) {
+        if (!imagePath) return '';
+        if (imagePath.includes('res.cloudinary.com')) {
+            const parts = imagePath.split('/');
+            const filename = parts[parts.length - 1];
+            const folderIndex = imagePath.indexOf('upload/');
+            if (folderIndex !== -1) {
+                const afterUpload = imagePath.substring(folderIndex + 7);
+                const pathParts = afterUpload.split('/');
+                if (pathParts.length > 1) {
+                    pathParts.pop();
+                    const folder = pathParts.join('/');
+                    return `${R2_WORKER_URL}/${folder}/${filename}`;
+                }
             }
-          };
-          compress();
-        };
-        img.onerror = reject;
-        img.src = e.target.result;
-      };
-      reader.onerror = reject;
-      reader.readAsDataURL(file);
+            return `${R2_WORKER_URL}/${filename}`;
+        }
+        if (imagePath.includes('frosty-field-ea93')) return imagePath;
+        return `${R2_WORKER_URL}/${imagePath}`;
+    }
+
+    document.addEventListener('contextmenu', function(e) {
+        if (e.target.tagName === 'IMG') { e.preventDefault(); return false; }
     });
-  }
-
-  // ============================================================
-  //  TOGGLE AUTH MODE
-  // ============================================================
-  function toggleAuthMode() {
-    const isLogin = actionBtn.textContent === 'تسجيل الدخول';
-    if (isLogin) {
-      actionBtn.textContent = 'إنشاء حساب';
-      toggleText.textContent = 'لديك حساب بالفعل؟';
-      toggleAction.textContent = 'تسجيل الدخول';
-      signupFields.classList.add('visible');
-    } else {
-      actionBtn.textContent = 'تسجيل الدخول';
-      toggleText.textContent = 'ليس لديك حساب؟';
-      toggleAction.textContent = 'إنشاء حساب جديد';
-      signupFields.classList.remove('visible');
-    }
-    clearToast();
-    document.querySelectorAll('.error').forEach(el => el.classList.remove('error'));
-  }
-  toggleAction.addEventListener('click', toggleAuthMode);
-
-  // ============================================================
-  //  BLUR VALIDATIONS
-  // ============================================================
-  fullNameInput.addEventListener('blur', () => {
-    const val = fullNameInput.value.trim();
-    if (val && !hasThreeNames(val)) {
-      fullNameInput.classList.add('error');
-      showToast('⚠️ الاسم يجب أن يتكون من 3 أسماء على الأقل.', 'error');
-    } else fullNameInput.classList.remove('error');
-  });
-  usernameInput.addEventListener('blur', () => {
-    const val = usernameInput.value.trim();
-    if (val && !isValidUsername(val)) {
-      usernameInput.classList.add('error');
-      showToast('⚠️ اسم المستخدم إنجليزي (حروف، أرقام، _) وطوله 3-20.', 'error');
-    } else usernameInput.classList.remove('error');
-  });
-  phoneInput.addEventListener('blur', () => {
-    const val = phoneInput.value.trim();
-    if (val && !isValidPhone(val)) {
-      phoneInput.classList.add('error');
-      showToast('⚠️ رقم الهاتف يجب أن يبدأ بـ 077 ويتكون من 11 رقمًا.', 'error');
-    } else phoneInput.classList.remove('error');
-  });
-  phoneInput.addEventListener('keydown', (e) => {
-    if (!/^[0-9]$/.test(e.key) && !['Backspace','Delete','Tab','Escape','Enter','ArrowLeft','ArrowRight','ArrowUp','ArrowDown','Home','End'].includes(e.key)) {
-      e.preventDefault();
-      showToast('⚠️ يُسمح فقط بالأرقام.', 'error');
-    }
-  });
-  accountNumber.addEventListener('input', () => {
-    const val = accountNumber.value.trim();
-    if (val && !/^\d*$/.test(val)) accountNumber.value = val.replace(/\D/g, '');
-    if (val && !isValidAccountNumber(val)) accountNumber.classList.add('error');
-    else accountNumber.classList.remove('error');
-  });
-
-  // ============================================================
-  //  AUTH ACTIONS (LOGIN & SIGNUP)
-  // ============================================================
-  actionBtn.addEventListener('click', async () => {
-    const email = emailInput.value.trim();
-    const password = passwordInput.value.trim();
-    clearToast();
-
-    if (!email || !password) {
-      showToast('الرجاء ملء البريد وكلمة المرور.', 'error');
-      return;
-    }
-
-    const isLoginMode = actionBtn.textContent === 'تسجيل الدخول';
-
-    if (isLoginMode) {
-      try {
-        await signInWithEmailAndPassword(auth, email, password);
-        // onAuthStateChanged handles routing
-      } catch (err) {
-        let msg = err.message;
-        if (err.code === 'auth/user-not-found') msg = 'البريد غير مسجل. يرجى إنشاء حساب.';
-        else if (err.code === 'auth/wrong-password') msg = 'كلمة المرور غير صحيحة.';
-        else if (err.code === 'auth/too-many-requests') msg = 'محاولات كثيرة، حاول لاحقاً.';
-        showToast(msg, 'error');
-      }
-      return;
-    }
-
-    // Signup
-    const fullName = fullNameInput.value.trim();
-    const username = usernameInput.value.trim();
-    const phone = phoneInput.value.trim();
-    const address = addressInput.value.trim();
-
-    if (!fullName || !username || !phone || !address) {
-      showToast('الرجاء ملء جميع الحقول.', 'error');
-      return;
-    }
-    if (!hasThreeNames(fullName)) { showToast('⚠️ الاسم يجب أن يكون ثلاثي.', 'error'); return; }
-    if (!isValidUsername(username)) { showToast('⚠️ اسم المستخدم غير صالح.', 'error'); return; }
-    if (isAdminEmail(email)) { showToast('⚠️ لا يمكن استخدام بريد إدمن للتسجيل.', 'error'); return; }
-    if (!isValidPhone(phone)) { showToast('⚠️ رقم الهاتف غير صحيح.', 'error'); return; }
-    if (password.length < 6) { showToast('كلمة المرور 6 أحرف على الأقل.', 'error'); return; }
-
-    const isUUnique = await isFieldUnique('usernames', username);
-    if (!isUUnique) { showToast('⚠️ اسم المستخدم مستخدم بالفعل.', 'error'); return; }
-    const isEUnique = await isFieldUnique('emails', email);
-    if (!isEUnique) { showToast('⚠️ البريد الإلكتروني مستخدم.', 'error'); return; }
-    const isPUnique = await isFieldUnique('phones', phone);
-    if (!isPUnique) { showToast('⚠️ رقم الهاتف مستخدم.', 'error'); return; }
-
-    try {
-      const cred = await createUserWithEmailAndPassword(auth, email, password);
-      const user = cred.user;
-      await updateProfile(user, { displayName: fullName });
-
-      const walletId = await generateUniqueWalletId();
-      const userRef = ref(database, 'users/' + user.uid);
-      await set(userRef, {
-        fullName, username, email, phone, address, walletId,
-        balance: 0,
-        role: 'user',
-        verificationStatus: 'pending',
-        dailyDepositCount: 0,
-        lastDepositDate: new Date().toISOString().split('T')[0],
-        createdAt: new Date().toISOString()
-      });
-
-      const emailKey = sanitizeKey(email.toLowerCase());
-      await update(ref(database), {
-        ['usernames/' + username.toLowerCase()]: user.uid,
-        ['emails/' + emailKey]: user.uid,
-        ['phones/' + phone]: user.uid,
-        ['wallets/' + walletId]: user.uid
-      });
-
-      showToast('✅ تم إنشاء الحساب بنجاح!', 'success');
-    } catch (err) {
-      let msg = err.message;
-      if (err.code === 'auth/email-already-in-use') msg = 'البريد مستخدم بالفعل.';
-      else if (err.code === 'auth/weak-password') msg = 'كلمة المرور ضعيفة.';
-      showToast('فشل إنشاء الحساب: ' + msg, 'error');
-    }
-  });
-
-  // ============================================================
-  //  COPY WALLET ID
-  // ============================================================
-  copyWalletBtn.addEventListener('click', () => {
-    const text = walletIdDisplay.textContent;
-    if (text && text !== 'G00000000') {
-      navigator.clipboard.writeText(text).then(() => {
-        showToast('✅ تم نسخ رقم المحفظة!', 'success');
-      }).catch(() => {
-        const input = document.createElement('input');
-        input.value = text;
-        document.body.appendChild(input);
-        input.select();
-        document.execCommand('copy');
-        input.remove();
-        showToast('✅ تم نسخ رقم المحفظة!', 'success');
-      });
-    }
-  });
-
-  // ============================================================
-  //  COMPLETE PROFILE
-  // ============================================================
-  completeProfileBtn.addEventListener('click', async () => {
-    if (!currentUser) return;
-    if (currentUserData) {
-      const status = currentUserData.verificationStatus;
-      if (status === 'pending') {
-        showToast('⏳ لديك طلب قيد المراجعة، يرجى الانتظار.', 'error');
-        return;
-      }
-      if (status === 'approved') {
-        showToast('✅ حسابك مفعّل بالفعل.', 'error');
-        return;
-      }
-    }
-
-    const holderName = cardHolderName.value.trim();
-    const accountNum = accountNumber.value.trim();
-
-    if (!holderName) {
-      showToast('⚠️ يرجى إدخال اسم صاحب البطاقة.', 'error');
-      cardHolderName.classList.add('error');
-      return;
-    }
-    cardHolderName.classList.remove('error');
-
-    if (!isValidAccountNumber(accountNum)) {
-      showToast('⚠️ رقم الحساب يجب أن يتكون من 8 إلى 12 رقمًا.', 'error');
-      accountNumber.classList.add('error');
-      return;
-    }
-    accountNumber.classList.remove('error');
-
-    try {
-      const userRef = ref(database, 'users/' + currentUser.uid);
-      await update(userRef, {
-        cardHolderName: holderName,
-        accountNumber: accountNum,
-        paymentMethod: 'مصرف الرافدين (سوبر كي)',
-        verificationStatus: 'pending'
-      });
-
-      const pendingRef = ref(database, 'pendingVerifications/' + currentUser.uid);
-      await set(pendingRef, {
-        uid: currentUser.uid,
-        fullName: currentUserData?.fullName || '',
-        username: currentUserData?.username || '',
-        email: currentUserData?.email || '',
-        phone: currentUserData?.phone || '',
-        cardHolderName: holderName,
-        accountNumber: accountNum,
-        paymentMethod: 'مصرف الرافدين (سوبر كي)',
-        submittedAt: new Date().toISOString(),
-        status: 'pending'
-      });
-
-      showToast('✅ تم إرسال طلب التحقق بنجاح!', 'success');
-      if (currentUserData) {
-        currentUserData.verificationStatus = 'pending';
-        currentUserData.cardHolderName = holderName;
-        currentUserData.accountNumber = accountNum;
-        currentUserData.paymentMethod = 'مصرف الرافدين (سوبر كي)';
-      }
-      updateUserUI(currentUserData);
-    } catch (err) {
-      showToast('فشل إرسال الطلب: ' + err.message, 'error');
-    }
-  });
-
-  // ============================================================
-  //  NAVIGATION
-  // ============================================================
-  function navigateTo(pageId) {
-    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-    const target = document.getElementById(pageId);
-    if (target) target.classList.add('active');
-    document.querySelectorAll('.bottom-nav .nav-item').forEach(btn => {
-      const targetPage = btn.dataset.target;
-      if (targetPage) btn.classList.toggle('active', targetPage === pageId);
+    document.addEventListener('dragstart', function(e) {
+        if (e.target.tagName === 'IMG') { e.preventDefault(); return false; }
     });
-    document.getElementById('pageContent').scrollTop = 0;
-  }
 
-  // ============================================================
-  //  BUILD BOTTOM NAV
-  // ============================================================
-  function buildNavbar(isAdmin) {
-    bottomNav.innerHTML = '';
-    const items = isAdmin ? [
-      { icon: 'fa-home', label: 'الرئيسية', target: 'pageAdminHome' },
-      { icon: 'fa-users', label: 'المستخدمين', target: 'pageAdminUsers' },
-      { icon: 'fa-file-signature', label: 'التوثيق', target: 'pageAdminVerifications' },
-      { icon: 'fa-exchange-alt', label: 'المعاملات', target: 'pageAdminTransactions' },
-      { icon: 'fa-sign-out-alt', label: 'خروج', target: 'logout', class: 'logout-btn' }
-    ] : [
-      { icon: 'fa-home', label: 'الرئيسية', target: 'pageHome' },
-      { icon: 'fa-user', label: 'الملف', target: 'pageProfile' },
-      { icon: 'fa-exchange-alt', label: 'العمليات', target: 'pageTransactions' },
-      { icon: 'fa-sign-out-alt', label: 'خروج', target: 'logout', class: 'logout-btn' }
+    window.openImageLightbox = function(imageSrc, caption) {
+        const lightbox = document.getElementById('imageLightbox');
+        const lightboxImage = document.getElementById('lightboxImage');
+        const lightboxCaption = document.getElementById('lightboxCaption');
+        lightboxImage.src = getR2Url(imageSrc);
+        lightboxCaption.textContent = caption || '';
+        lightbox.classList.add('show');
+        document.body.style.overflow = 'hidden';
+    };
+
+    window.closeImageLightbox = function() {
+        document.getElementById('imageLightbox').classList.remove('show');
+        document.body.style.overflow = 'auto';
+    };
+
+    document.getElementById('imageLightbox').addEventListener('click', function(e) {
+        if (e.target === this) closeImageLightbox();
+    });
+    document.getElementById('imageLightboxClose').addEventListener('click', closeImageLightbox);
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') closeImageLightbox();
+    });
+
+    const regions = [
+        { name: "SKULL", icon: "🧠" },
+        { name: "MANDIBLE", icon: "🦷" },
+        { name: "CERVICAL SPINE", icon: "🦴" },
+        { name: "SHOULDER", icon: "💪" },
+        { name: "HUMERUS", icon: "🦴" },
+        { name: "ELBOW", icon: "💪" },
+        { name: "FOREARM", icon: "🖐️" },
+        { name: "WRIST", icon: "✋" },
+        { name: "HAND", icon: "🤚" },
+        { name: "CHEST", icon: "🫁" },
+        { name: "THORACIC VERTEBRAE", icon: "🦴" },
+        { name: "ABDOMEN", icon: "🩺" },
+        { name: "LUMBOSACRAL SPINE", icon: "🦴" },
+        { name: "PELVIS", icon: "🦴" },
+        { name: "SACRUM COCCYX", icon: "🦴" },
+        { name: "FEMUR", icon: "🦵" },
+        { name: "KNEE", icon: "🦵" },
+        { name: "PATELLA", icon: "🦵" },
+        { name: "LEG", icon: "🦵" },
+        { name: "ANKLE", icon: "🦶" },
+        { name: "FOOT", icon: "🦶" }
     ];
 
-    items.forEach(item => {
-      const btn = document.createElement('button');
-      btn.className = `nav-item ${item.class || ''}`;
-      btn.innerHTML = `<i class="fas ${item.icon}"></i><span>${item.label}</span>`;
-      if (item.target === 'logout') {
-        btn.addEventListener('click', logout);
-      } else {
-        btn.dataset.target = item.target;
-        btn.addEventListener('click', () => navigateTo(item.target));
-      }
-      bottomNav.appendChild(btn);
-    });
-    const firstBtn = bottomNav.querySelector('.nav-item:not(.logout-btn)');
-    if (firstBtn) firstBtn.classList.add('active');
-  }
+    let allData = {};
+    let selectedRegion = null;
+    let currentUser = null;
+    let userQuizProgress = {};
+    let quizQuestions = [];
+    let currentQuestionIndex = 0;
+    let correctCount = 0;
+    let answered = false;
+    let robotOpened = false;
+    let typingTimer = null;
 
-  // ============================================================
-  //  LOGOUT
-  // ============================================================
-  async function logout() {
-    try {
-      await signOut(auth);
-      showToast('تم تسجيل الخروج.', 'success');
-    } catch (err) {
-      showToast('خطأ في تسجيل الخروج.', 'error');
+    // ===== النطق الصوتي للروبوت =====
+    let arabicVoice = null;
+
+    function loadVoices() {
+        const voices = speechSynthesis.getVoices();
+        arabicVoice =
+            voices.find(v => v.lang === 'ar-SA') ||
+            voices.find(v => v.lang === 'ar-EG') ||
+            voices.find(v => v.lang.startsWith('ar')) ||
+            null;
     }
-  }
-
-  // ============================================================
-  //  UPDATE USER UI
-  // ============================================================
-  function updateUserUI(data) {
-    if (!data) return;
-
-    const status = data.verificationStatus || 'pending';
-    const isApproved = status === 'approved';
-    const isPending = status === 'pending';
-    const isRejected = status === 'rejected';
-
-    userBalance.innerHTML = (data.balance || 0).toFixed(2) + ' <span>د.ع</span>';
-    walletIdDisplay.textContent = data.walletId || 'G00000000';
-    headerUsername.textContent = data.username || 'مستخدم';
-
-    profileFullName.textContent = data.fullName || '-';
-    profileUsername.textContent = data.username || '-';
-    profileEmail.textContent = data.email || '-';
-    profilePhone.textContent = data.phone || '-';
-    profileAddress.textContent = data.address || '-';
-    profileWallet.textContent = data.walletId || '-';
-    profilePaymentMethod.textContent = data.paymentMethod || 'غير محدد';
-
-    const statusMap = {
-      'pending': '⏳ قيد المراجعة',
-      'approved': '✅ تم الموافقة',
-      'rejected': '❌ مرفوض'
-    };
-    profileStatus.textContent = statusMap[status] || 'غير محدد';
-
-    const today = new Date().toISOString().split('T')[0];
-    const lastDate = data.lastDepositDate || '';
-    let count = data.dailyDepositCount || 0;
-    if (lastDate !== today) count = 0;
-    dailyDepositCount.textContent = `${count} / ${DAILY_LIMIT}`;
-
-    // Banner for completion (if no payment method or rejected)
-    const banner = document.getElementById('completionBanner');
-    if (banner) {
-      if (data.paymentMethod && (status === 'pending' || status === 'approved')) {
-        banner.style.display = 'none';
-      } else {
-        banner.style.display = 'block';
-      }
+    loadVoices();
+    if (typeof speechSynthesis !== 'undefined' && speechSynthesis.onvoiceschanged !== undefined) {
+        speechSynthesis.onvoiceschanged = loadVoices;
     }
 
-    depositBtn.disabled = !isApproved;
-    withdrawBtn.disabled = !isApproved;
+    function speakRobot(text) {
+        if (!('speechSynthesis' in window)) return;
+        speechSynthesis.cancel();
 
-    // Update withdraw page
-    if (withdrawWalletId) withdrawWalletId.textContent = data.walletId || 'G00000000';
-    if (withdrawUserPhone) withdrawUserPhone.textContent = data.phone || 'غير محدد';
-    if (withdrawAvailableBalance) withdrawAvailableBalance.textContent = (data.balance || 0).toLocaleString();
+        const cleanText = text
+            .replace(/<[^>]*>/g, ' ')
+            .replace(/[🤖🎯💡✅❌]/g, '')
+            .replace(/\s+/g, ' ')
+            .trim();
 
-    // Update deposit page
-    if (depositFromPhone) depositFromPhone.textContent = data.phone || 'غير محدد';
-  }
+        if (!cleanText) return;
 
-  // ============================================================
-  //  LOAD USER DATA
-  // ============================================================
-  function loadUserData(uid) {
-    const userRef = ref(database, 'users/' + uid);
-    onValue(userRef, (snap) => {
-      const data = snap.val();
-      if (data) {
-        currentUserData = data;
-        updateUserUI(data);
-      }
-    });
+        const utterance = new SpeechSynthesisUtterance(cleanText);
+        utterance.lang = 'ar-SA';
+        utterance.rate = 0.95;
+        utterance.pitch = 1.05;
+        utterance.volume = 1;
+        if (arabicVoice) utterance.voice = arabicVoice;
 
-    const txRef = ref(database, 'transactions/' + uid);
-    onValue(txRef, (snap) => {
-      const txData = snap.val();
-      renderUserTransactions(txData);
-    });
-  }
-
-  function renderUserTransactions(txData) {
-    const renderList = (container, limit = 0) => {
-      container.innerHTML = '';
-      if (!txData) {
-        container.innerHTML = '<p style="color:#7f8c9b;text-align:center;padding:20px 0;">لا توجد عمليات</p>';
-        return;
-      }
-      const entries = Object.entries(txData);
-      entries.sort((a, b) => (b[1].date || '').localeCompare(a[1].date || ''));
-      const list = limit > 0 ? entries.slice(0, limit) : entries;
-      if (list.length === 0) {
-        container.innerHTML = '<p style="color:#7f8c9b;text-align:center;padding:20px 0;">لا توجد عمليات</p>';
-        return;
-      }
-      list.forEach(([key, tx]) => {
-        const div = document.createElement('div');
-        div.className = `transaction-item ${tx.type === 'withdraw' ? 'withdraw' : ''}`;
-        const isDeposit = tx.type === 'deposit';
-        let statusText = '';
-        if (tx.adminStatus === 'pending') statusText = '⏳ قيد المراجعة';
-        else if (tx.adminStatus === 'approved') statusText = '✅ مقبولة';
-        else if (tx.adminStatus === 'rejected') statusText = '❌ مرفوضة';
-        let note = tx.adminNote ? `<br><span style="font-size:11px; color:#e74c3c;">السبب: ${tx.adminNote}</span>` : '';
-        div.innerHTML = `
-          <div class="tx-info">
-            <span class="tx-type">${isDeposit ? '💰 إيداع' : '💸 سحب'}</span>
-            <span class="tx-date">${new Date(tx.date).toLocaleString('ar-EG')}</span>
-            ${statusText ? `<span style="font-size:11px; color:#7f8c9b;">${statusText}</span>` : ''}
-            ${note}
-            ${tx.code ? `<span style="font-size:11px; color:#555;">كود: ${tx.code}</span>` : ''}
-          </div>
-          <span class="tx-amount ${isDeposit ? 'positive' : 'negative'}">${isDeposit ? '+' : '-'}${tx.amount.toFixed(2)} د.ع</span>
-        `;
-        container.appendChild(div);
-      });
-    };
-
-    renderList(recentTransactions, 5);
-    renderList(allTransactions);
-  }
-
-  // ============================================================
-  //  DEPOSIT PAGE LOGIC
-  // ============================================================
-  function openDepositPage() {
-    if (!currentUser || !currentUserData) return;
-    if (currentUserData.verificationStatus !== 'approved') {
-      showToast('⚠️ يجب أن تكون موافقاً على التحقق أولاً.', 'error');
-      return;
-    }
-    const today = new Date().toISOString().split('T')[0];
-    const lastDate = currentUserData.lastDepositDate || '';
-    let count = currentUserData.dailyDepositCount || 0;
-    if (lastDate !== today) count = 0;
-    if (count >= DAILY_LIMIT) {
-      showToast(`⚠️ لقد تجاوزت الحد اليومي (${DAILY_LIMIT} عمليات).`, 'error');
-      return;
+        speechSynthesis.speak(utterance);
     }
 
-    depositFromPhone.textContent = currentUserData.phone || 'غير محدد';
-    depositAmount.value = 10000;
-    selectedFile = null;
-    depositFileName.textContent = 'انقر لرفع صورة التحويل';
-    depositFileInput.value = '';
-    submitDepositBtn.disabled = false;
-    submitDepositBtn.innerHTML = '<i class="fas fa-check"></i> إتمام الإيداع';
-    updateDepositUI();
-    bottomNav.style.display = 'none';
-    navigateTo('pageDeposit');
-  }
-
-  function updateDepositUI() {
-    const amount = parseInt(depositAmount.value) || 10000;
-    const code = generateDepositCode(amount);
-    depositCode.textContent = code;
-    const netAmount = calculateNetAmount(amount);
-    depositNet.textContent = netAmount.toLocaleString() + ' د.ع';
-  }
-
-  depositAmount.addEventListener('input', () => {
-    let val = parseInt(depositAmount.value) || 10000;
-    if (val < MIN_AMOUNT) val = MIN_AMOUNT;
-    if (val > MAX_AMOUNT) val = MAX_AMOUNT;
-    depositAmount.value = val;
-    updateDepositUI();
-  });
-
-  depositMinusBtn.addEventListener('click', () => {
-    let val = parseInt(depositAmount.value) || 10000;
-    if (val > MIN_AMOUNT) val -= 1000;
-    if (val < MIN_AMOUNT) val = MIN_AMOUNT;
-    depositAmount.value = val;
-    updateDepositUI();
-  });
-
-  depositPlusBtn.addEventListener('click', () => {
-    let val = parseInt(depositAmount.value) || 10000;
-    if (val < MAX_AMOUNT) val += 1000;
-    if (val > MAX_AMOUNT) val = MAX_AMOUNT;
-    depositAmount.value = val;
-    updateDepositUI();
-  });
-
-  copyDepositCode.addEventListener('click', () => {
-    const code = depositCode.textContent;
-    if (code) {
-      navigator.clipboard.writeText(code).then(() => {
-        showToast('✅ تم نسخ الكود!', 'success');
-      }).catch(() => {
-        const input = document.createElement('input');
-        input.value = code;
-        document.body.appendChild(input);
-        input.select();
-        document.execCommand('copy');
-        input.remove();
-        showToast('✅ تم نسخ الكود!', 'success');
-      });
-    }
-  });
-
-  depositFileUpload.addEventListener('click', () => depositFileInput.click());
-  depositFileInput.addEventListener('change', async (e) => {
-    if (e.target.files.length > 0) {
-      const file = e.target.files[0];
-      if (!file.type.startsWith('image/')) {
-        showToast('⚠️ يرجى اختيار ملف صورة فقط (jpg, png, jpeg).', 'error');
-        depositFileInput.value = '';
-        return;
-      }
-      if (file.size > 5 * 1024 * 1024) {
-        showToast('⚠️ حجم الصورة كبير جداً. الحد الأقصى 5 ميجابايت.', 'error');
-        depositFileInput.value = '';
-        return;
-      }
-      try {
-        const compressedBlob = await compressImage(file, 30);
-        const compressedFile = new File([compressedBlob], file.name, { type: 'image/jpeg' });
-        selectedFile = compressedFile;
-        depositFileName.textContent = `✅ ${file.name} (${Math.round(compressedBlob.size/1024)} KB)`;
-      } catch (err) {
-        showToast('فشل ضغط الصورة: ' + err.message, 'error');
-        selectedFile = null;
-        depositFileName.textContent = '❌ فشل الضغط، حاول مرة أخرى';
-      }
-    } else {
-      selectedFile = null;
-      depositFileName.textContent = 'انقر لرفع صورة التحويل';
-    }
-  });
-
-  submitDepositBtn.addEventListener('click', async () => {
-    if (!currentUser || !currentUserData) return;
-
-    const amount = parseInt(depositAmount.value) || 0;
-    if (amount < MIN_AMOUNT || amount > MAX_AMOUNT) {
-      showToast(`⚠️ المبلغ يجب أن يكون بين ${MIN_AMOUNT.toLocaleString()} و ${MAX_AMOUNT.toLocaleString()} د.ع.`, 'error');
-      return;
-    }
-
-    if (!selectedFile) {
-      showToast('⚠️ يرجى رفع صورة عملية التحويل.', 'error');
-      return;
-    }
-
-    const today = new Date().toISOString().split('T')[0];
-    const lastDate = currentUserData.lastDepositDate || '';
-    let count = currentUserData.dailyDepositCount || 0;
-    if (lastDate !== today) count = 0;
-    if (count >= DAILY_LIMIT) {
-      showToast(`⚠️ لقد تجاوزت الحد اليومي (${DAILY_LIMIT} عمليات).`, 'error');
-      return;
-    }
-
-    submitDepositBtn.disabled = true;
-    submitDepositBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> جاري الإرسال...';
-
-    try {
-      const formData = new FormData();
-      formData.append('file', selectedFile);
-      formData.append('filename', selectedFile.name);
-
-      const response = await fetch(WORKER_URL, {
-        method: 'POST',
-        body: formData
-      });
-
-      if (!response.ok) {
-        const errorText = await response.text();
-        throw new Error(`فشل رفع الصورة (${response.status}): ${errorText || 'خطأ غير معروف'}`);
-      }
-
-      let imageUrl = null;
-      const responseText = await response.text();
-
-      try {
-        const data = JSON.parse(responseText);
-        if (data.success && data.url) {
-          imageUrl = data.url;
-        } else if (data.url) {
-          imageUrl = data.url;
-        } else {
-          throw new Error('الاستجابة لا تحتوي على رابط صورة');
-        }
-      } catch (e) {
-        const urlRegex = /https?:\/\/[^\s"']+/gi;
-        const matches = responseText.match(urlRegex);
-        if (matches && matches.length > 0) {
-          imageUrl = matches[0];
-        } else {
-          throw new Error(`لم يتم استلام رابط صورة صالح. استجابة الخادم: ${responseText.substring(0, 100)}...`);
-        }
-      }
-
-      if (!imageUrl) {
-        throw new Error('لم يتم استلام رابط صورة صالح');
-      }
-
-      const code = depositCode.textContent;
-      const netAmount = calculateNetAmount(amount);
-
-      const txRef = ref(database, 'transactions/' + currentUser.uid);
-      const newTxRef = push(txRef);
-      await set(newTxRef, {
-        type: 'deposit',
-        amount: amount,
-        netAmount: netAmount,
-        code: code,
-        fromPhone: currentUserData.phone,
-        toPhone: TO_PHONE,
-        imageUrl: imageUrl,
-        date: new Date().toISOString(),
-        status: 'pending',
-        adminStatus: 'pending',
-        adminNote: null
-      });
-
-      const newCount = count + 1;
-      await update(ref(database, 'users/' + currentUser.uid), {
-        dailyDepositCount: newCount,
-        lastDepositDate: today
-      });
-
-      showToast('✅ تم إرسال طلب الإيداع بنجاح! سيتم مراجعته خلال 1-24 ساعة.', 'success');
-      bottomNav.style.display = 'flex';
-      navigateTo('pageHome');
-      if (currentUserData) {
-        currentUserData.dailyDepositCount = newCount;
-        currentUserData.lastDepositDate = today;
-        updateUserUI(currentUserData);
-      }
-    } catch (err) {
-      console.error('❌ خطأ في الإيداع:', err);
-      showToast('فشل إرسال الطلب: ' + err.message, 'error');
-      submitDepositBtn.disabled = false;
-      submitDepositBtn.innerHTML = '<i class="fas fa-check"></i> إتمام الإيداع';
-    }
-  });
-
-  cancelDepositBtn.addEventListener('click', () => {
-    bottomNav.style.display = 'flex';
-    navigateTo('pageHome');
-  });
-  depositBackBtn.addEventListener('click', () => {
-    bottomNav.style.display = 'flex';
-    navigateTo('pageHome');
-  });
-  depositBtn.addEventListener('click', openDepositPage);
-
-  // ============================================================
-  //  WITHDRAW PAGE LOGIC
-  // ============================================================
-  function openWithdrawPage() {
-    if (!currentUser || !currentUserData) return;
-    if (currentUserData.verificationStatus !== 'approved') {
-      showToast('⚠️ يجب أن تكون موافقاً على التحقق أولاً.', 'error');
-      return;
-    }
-    const balance = currentUserData.balance || 0;
-    withdrawAvailableBalance.textContent = balance.toLocaleString();
-    withdrawAmount.value = Math.min(10000, balance);
-    bottomNav.style.display = 'none';
-    navigateTo('pageWithdraw');
-  }
-
-  withdrawAmount.addEventListener('input', () => {
-    const balance = currentUserData?.balance || 0;
-    let val = parseInt(withdrawAmount.value) || 0;
-    if (val < 10000) val = 10000;
-    if (val > balance) val = balance;
-    withdrawAmount.value = val;
-  });
-
-  withdrawMinusBtn.addEventListener('click', () => {
-    let val = parseInt(withdrawAmount.value) || 10000;
-    if (val > 10000) val -= 1000;
-    if (val < 10000) val = 10000;
-    withdrawAmount.value = val;
-  });
-
-  withdrawPlusBtn.addEventListener('click', () => {
-    const balance = currentUserData?.balance || 0;
-    let val = parseInt(withdrawAmount.value) || 10000;
-    if (val < balance) val += 1000;
-    if (val > balance) val = balance;
-    withdrawAmount.value = val;
-  });
-
-  submitWithdrawBtn.addEventListener('click', async () => {
-    if (!currentUser || !currentUserData) return;
-    const amount = parseInt(withdrawAmount.value) || 0;
-    const balance = currentUserData.balance || 0;
-    if (amount < 10000) {
-      showToast('⚠️ الحد الأدنى للسحب 10,000 د.ع.', 'error');
-      return;
-    }
-    if (amount > balance) {
-      showToast('⚠️ المبلغ أكبر من الرصيد المتاح.', 'error');
-      return;
-    }
-
-    try {
-      const userRef = ref(database, 'users/' + currentUser.uid);
-      const newBalance = balance - amount;
-      const txRef = ref(database, 'transactions/' + currentUser.uid);
-      const newTxRef = push(txRef);
-      await update(userRef, { balance: newBalance });
-      await set(newTxRef, {
-        type: 'withdraw',
-        amount: amount,
-        date: new Date().toISOString(),
-        status: 'pending',
-        adminStatus: 'pending', // pending approval
-        fromPhone: currentUserData.phone,
-        toPhone: 'GOOSIQ'
-      });
-      showToast(`✅ تم إرسال طلب السحب بنجاح! سيتم مراجعته خلال 1-24 ساعة.`, 'success');
-      bottomNav.style.display = 'flex';
-      navigateTo('pageHome');
-    } catch (err) {
-      showToast('فشلت العملية: ' + err.message, 'error');
-    }
-  });
-
-  cancelWithdrawBtn.addEventListener('click', () => {
-    bottomNav.style.display = 'flex';
-    navigateTo('pageHome');
-  });
-  withdrawBackBtn.addEventListener('click', () => {
-    bottomNav.style.display = 'flex';
-    navigateTo('pageHome');
-  });
-  withdrawBtn.addEventListener('click', openWithdrawPage);
-
-  // ============================================================
-  //  ADMIN FUNCTIONS
-  // ============================================================
-  function loadAdminData() {
-    const usersRef = ref(database, 'users');
-    onValue(usersRef, (snap) => {
-      allUsers = snap.val() || {};
-      renderAdminUsers(adminSearchInput.value);
-      renderAdminVerifications();
-      updateAdminStats();
-    });
-
-    const txRef = ref(database, 'transactions');
-    onValue(txRef, (snap) => {
-      allTransactionsData = snap.val() || {};
-      renderAdminTransactions();
-      updateAdminStats();
-    });
-  }
-
-  function renderAdminUsers(filter = '') {
-    const usersArray = Object.keys(allUsers).map(uid => ({ uid, ...allUsers[uid] }));
-    const filtered = usersArray.filter(u => !isAdminEmail(u.email));
-    let result = filtered;
-    const search = filter.trim().toLowerCase();
-    if (search) {
-      result = filtered.filter(u =>
-        (u.fullName && u.fullName.toLowerCase().includes(search)) ||
-        (u.username && u.username.toLowerCase().includes(search)) ||
-        (u.email && u.email.toLowerCase().includes(search)) ||
-        (u.phone && u.phone.includes(search))
-      );
-    }
-    result.sort((a, b) => (b.createdAt || '').localeCompare(a.createdAt || ''));
-
-    if (result.length === 0) {
-      adminUserList.innerHTML = '<p style="color:#7f8c9b;text-align:center;padding:20px 0;">لا توجد نتائج مطابقة</p>';
-      return;
-    }
-
-    adminUserList.innerHTML = '';
-    result.forEach(user => {
-      const div = document.createElement('div');
-      div.className = 'admin-user-item';
-      const statusText = {
-        'pending': '⏳ قيد المراجعة',
-        'approved': '✅ مفعّل',
-        'rejected': '❌ مرفوض'
-      }[user.verificationStatus] || 'غير محدد';
-      const statusClass = {
-        'pending': 'pending',
-        'approved': 'approved',
-        'rejected': 'rejected'
-      }[user.verificationStatus] || '';
-      let verificationHTML = '';
-      if (user.cardHolderName || user.accountNumber) {
-        verificationHTML = `
-          <div class="verification-details">
-            <strong>طريقة الدفع:</strong> ${user.paymentMethod || 'مصرف الرافدين (سوبر كي)'}<br>
-            <strong>اسم صاحب البطاقة:</strong> ${user.cardHolderName || 'غير محدد'}<br>
-            <strong>رقم الحساب:</strong> ${user.accountNumber || 'غير محدد'}
-          </div>
-        `;
-      }
-      div.innerHTML = `
-        <div class="user-header">
-          <span class="user-name">${user.fullName || 'غير معروف'} (@${user.username || 'لا يوجد'})</span>
-          <span class="user-status ${statusClass}">${statusText}</span>
-        </div>
-        <div class="user-details">
-          <span>📧 ${user.email || 'لا يوجد'}</span>
-          <span>📱 ${user.phone || 'لا يوجد'}</span>
-          <span>💰 ${user.walletId || 'لا يوجد'}</span>
-          <span>💳 ${formatCurrency(user.balance || 0)}</span>
-        </div>
-        ${verificationHTML}
-        <div class="user-actions">
-          <button class="edit-btn" data-uid="${user.uid}"><i class="fas fa-edit"></i> تعديل</button>
-          ${user.verificationStatus === 'pending' ? `
-            <button class="approve-btn" data-uid="${user.uid}"><i class="fas fa-check"></i> قبول</button>
-            <button class="reject-btn" data-uid="${user.uid}"><i class="fas fa-times"></i> رفض</button>
-          ` : ''}
-          ${user.verificationStatus === 'rejected' ? `
-            <button class="approve-btn" data-uid="${user.uid}"><i class="fas fa-check"></i> قبول</button>
-          ` : ''}
-        </div>
-      `;
-      adminUserList.appendChild(div);
-    });
-
-    document.querySelectorAll('#adminUserList .edit-btn').forEach(btn => {
-      btn.addEventListener('click', () => {
-        const uid = btn.dataset.uid;
-        if (allUsers[uid]) openEditModal(uid, allUsers[uid]);
-      });
-    });
-    document.querySelectorAll('#adminUserList .approve-btn').forEach(btn => {
-      btn.addEventListener('click', () => approveUser(btn.dataset.uid));
-    });
-    document.querySelectorAll('#adminUserList .reject-btn').forEach(btn => {
-      btn.addEventListener('click', () => rejectUser(btn.dataset.uid));
-    });
-  }
-
-  function renderAdminVerifications() {
-    const pendingUsers = Object.keys(allUsers)
-      .map(uid => ({ uid, ...allUsers[uid] }))
-      .filter(u => u.verificationStatus === 'pending' && (u.cardHolderName || u.accountNumber))
-      .filter(u => !isAdminEmail(u.email));
-
-    if (pendingUsers.length === 0) {
-      adminVerificationList.innerHTML = '<p style="color:#7f8c9b;text-align:center;padding:20px 0;">لا توجد طلبات توثيق معلقة</p>';
-      return;
-    }
-
-    adminVerificationList.innerHTML = '';
-    pendingUsers.forEach(user => {
-      const div = document.createElement('div');
-      div.className = 'admin-user-item';
-      div.innerHTML = `
-        <div class="user-header">
-          <span class="user-name">${user.fullName || 'غير معروف'} (@${user.username || 'لا يوجد'})</span>
-          <span class="user-status pending">⏳ قيد المراجعة</span>
-        </div>
-        <div class="user-details">
-          <span>📧 ${user.email || 'لا يوجد'}</span>
-          <span>📱 ${user.phone || 'لا يوجد'}</span>
-        </div>
-        <div class="verification-details">
-          <strong>طريقة الدفع:</strong> ${user.paymentMethod || 'مصرف الرافدين (سوبر كي)'}<br>
-          <strong>اسم صاحب البطاقة:</strong> ${user.cardHolderName || 'غير محدد'}<br>
-          <strong>رقم الحساب:</strong> ${user.accountNumber || 'غير محدد'}
-        </div>
-        <div class="user-actions">
-          <button class="approve-btn" data-uid="${user.uid}"><i class="fas fa-check"></i> قبول</button>
-          <button class="reject-btn" data-uid="${user.uid}"><i class="fas fa-times"></i> رفض</button>
-        </div>
-      `;
-      adminVerificationList.appendChild(div);
-    });
-
-    document.querySelectorAll('#adminVerificationList .approve-btn').forEach(btn => {
-      btn.addEventListener('click', () => approveUser(btn.dataset.uid));
-    });
-    document.querySelectorAll('#adminVerificationList .reject-btn').forEach(btn => {
-      btn.addEventListener('click', () => rejectUser(btn.dataset.uid));
-    });
-  }
-
-  function renderAdminTransactions() {
-    let txArray = Object.keys(allTransactionsData).flatMap(uid =>
-      Object.keys(allTransactionsData[uid] || {}).map(txId => ({
-        uid,
-        txId,
-        ...allTransactionsData[uid][txId],
-        userData: allUsers[uid] || {}
-      }))
-    );
-
-    txArray.sort((a, b) => (b.date || '').localeCompare(a.date || ''));
-
-    const filterText = txFilter.text.trim().toLowerCase();
-    const filterDate = txFilter.date;
-
-    if (filterText) {
-      txArray = txArray.filter(tx => {
-        const user = tx.userData || {};
-        const fullName = (user.fullName || '').toLowerCase();
-        const username = (user.username || '').toLowerCase();
-        const phone = (user.phone || '').toLowerCase();
-        const fromPhone = (tx.fromPhone || '').toLowerCase();
-        return fullName.includes(filterText) ||
-               username.includes(filterText) ||
-               phone.includes(filterText) ||
-               fromPhone.includes(filterText);
-      });
-    }
-
-    if (filterDate) {
-      txArray = txArray.filter(tx => {
-        const txDate = formatDateForComparison(tx.date);
-        return txDate === filterDate;
-      });
-    }
-
-    if (txArray.length === 0) {
-      adminTransactionList.innerHTML = '<p style="color:#7f8c9b;text-align:center;padding:20px 0;">لا توجد معاملات تطابق البحث</p>';
-      return;
-    }
-
-    adminTransactionList.innerHTML = '';
-    txArray.forEach(tx => {
-      const user = tx.userData || {};
-      const isDeposit = tx.type === 'deposit';
-      const statusClass = tx.adminStatus || 'pending';
-      const statusText = {
-        'pending': '⏳ قيد المراجعة',
-        'approved': '✅ مقبولة',
-        'rejected': '❌ مرفوضة'
-      }[statusClass] || '⏳ قيد المراجعة';
-
-      const div = document.createElement('div');
-      div.className = 'admin-tx-item';
-      if (isDeposit) {
-        div.style.borderRightColor = '#27ae60';
-      } else {
-        div.style.borderRightColor = '#e67e22';
-      }
-
-      let detailsHTML = `
-        <span><i class="fas fa-user"></i> ${user.fullName || 'غير معروف'}</span>
-        <span><i class="fas fa-at"></i> @${user.username || 'لا يوجد'}</span>
-        <span><i class="fas fa-wallet"></i> ${user.walletId || 'لا يوجد'}</span>
-      `;
-      if (tx.code) {
-        detailsHTML += `<span><i class="fas fa-key"></i> ${tx.code}</span>`;
-      }
-      if (tx.fromPhone) {
-        detailsHTML += `<span><i class="fas fa-phone"></i> ${tx.fromPhone}</span>`;
-      }
-      let imageHTML = '';
-      if (tx.imageUrl) {
-        imageHTML = `<span><i class="fas fa-image"></i> <a href="${tx.imageUrl}" target="_blank" style="color:#f5b041;">عرض الصورة</a></span>`;
-      }
-
-      let noteHTML = '';
-      if (tx.adminNote) {
-        noteHTML = `<div class="tx-note"><i class="fas fa-exclamation-circle"></i> سبب الرفض: ${tx.adminNote}</div>`;
-      }
-
-      div.innerHTML = `
-        <div class="tx-header">
-          <span class="tx-user"><i class="fas fa-${isDeposit ? 'plus-circle' : 'minus-circle'}"></i> ${isDeposit ? 'إيداع' : 'سحب'}</span>
-          <span class="tx-amount ${isDeposit ? '' : 'withdraw'}">${isDeposit ? '+' : '-'}${formatCurrency(tx.amount || 0)}</span>
-        </div>
-        <div class="tx-details">
-          ${detailsHTML}
-          ${imageHTML}
-        </div>
-        <div class="tx-bottom">
-          <span class="tx-status-badge ${statusClass}">${statusText}</span>
-          <span style="font-size:12px; color:#7f8c9b;"><i class="far fa-calendar-alt"></i> ${new Date(tx.date).toLocaleString('ar-EG')}</span>
-        </div>
-        <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:6px; margin-top:4px;">
-          <span class="tx-click-hint"><i class="fas fa-hand-pointer"></i> اضغط لعرض التفاصيل</span>
-          ${tx.adminStatus !== 'approved' && tx.adminStatus !== 'rejected' ? `
-          <div class="tx-actions">
-            <button class="approve-tx" data-uid="${tx.uid}" data-txid="${tx.txId}"><i class="fas fa-check"></i> قبول</button>
-            <button class="reject-tx" data-uid="${tx.uid}" data-txid="${tx.txId}"><i class="fas fa-times"></i> رفض</button>
-          </div>
-          ` : ''}
-        </div>
-        ${noteHTML}
-      `;
-
-      div.addEventListener('click', (e) => {
-        if (e.target.closest('button') || e.target.closest('a')) return;
-        showTransactionDetail(tx);
-      });
-
-      adminTransactionList.appendChild(div);
-    });
-
-    document.querySelectorAll('#adminTransactionList .approve-tx').forEach(btn => {
-      btn.addEventListener('click', (e) => {
-        e.stopPropagation();
-        const uid = btn.dataset.uid;
-        const txId = btn.dataset.txid;
-        approveTransaction(uid, txId);
-      });
-    });
-    document.querySelectorAll('#adminTransactionList .reject-tx').forEach(btn => {
-      btn.addEventListener('click', (e) => {
-        e.stopPropagation();
-        const uid = btn.dataset.uid;
-        const txId = btn.dataset.txid;
-        rejectTransaction(uid, txId);
-      });
-    });
-  }
-
-  // ===== Transaction Detail =====
-  function showTransactionDetail(tx) {
-    const user = tx.userData || {};
-    const isDeposit = tx.type === 'deposit';
-    const statusClass = tx.adminStatus || 'pending';
-    const statusText = {
-      'pending': '⏳ قيد المراجعة',
-      'approved': '✅ مقبولة',
-      'rejected': '❌ مرفوضة'
-    }[statusClass] || '⏳ قيد المراجعة';
-
-    let rowsHTML = `
-      <div class="detail-row">
-        <span class="label"><i class="fas fa-user"></i> الاسم الكامل</span>
-        <span class="value">${user.fullName || 'غير معروف'}</span>
-      </div>
-      <div class="detail-row">
-        <span class="label"><i class="fas fa-at"></i> اسم المستخدم</span>
-        <span class="value">@${user.username || 'لا يوجد'}</span>
-      </div>
-      <div class="detail-row">
-        <span class="label"><i class="fas fa-wallet"></i> رقم المحفظة</span>
-        <span class="value">${user.walletId || 'لا يوجد'}</span>
-      </div>
-      <div class="detail-row">
-        <span class="label"><i class="fas fa-${isDeposit ? 'plus-circle' : 'minus-circle'}"></i> نوع المعاملة</span>
-        <span class="value" style="color:${isDeposit ? '#27ae60' : '#e67e22'};">${isDeposit ? '💰 إيداع' : '💸 سحب'}</span>
-      </div>
-      <div class="detail-row">
-        <span class="label"><i class="fas fa-money-bill-wave"></i> المبلغ</span>
-        <span class="value">${formatCurrency(tx.amount || 0)}</span>
-      </div>
-    `;
-
-    if (isDeposit && tx.netAmount) {
-      rowsHTML += `
-        <div class="detail-row">
-          <span class="label"><i class="fas fa-check-circle" style="color:#27ae60;"></i> المبلغ المضاف</span>
-          <span class="value" style="color:#27ae60;">${formatCurrency(tx.netAmount)}</span>
-        </div>
-      `;
-    }
-
-    if (tx.fromPhone) {
-      rowsHTML += `
-        <div class="detail-row">
-          <span class="label"><i class="fas fa-phone"></i> رقم الهاتف</span>
-          <span class="value" style="direction:ltr;">${tx.fromPhone}</span>
-        </div>
-      `;
-    }
-
-    if (tx.code) {
-      rowsHTML += `
-        <div class="detail-row">
-          <span class="label"><i class="fas fa-key"></i> كود التحويل</span>
-          <span class="value" style="direction:ltr;font-family:monospace;">${tx.code}</span>
-        </div>
-      `;
-    }
-
-    rowsHTML += `
-      <div class="detail-row">
-        <span class="label"><i class="far fa-calendar-alt"></i> التاريخ</span>
-        <span class="value">${new Date(tx.date).toLocaleString('ar-EG')}</span>
-      </div>
-      <div class="detail-row">
-        <span class="label"><i class="fas fa-info-circle"></i> الحالة</span>
-        <span class="value"><span class="status-badge ${statusClass}">${statusText}</span></span>
-      </div>
-    `;
-
-    if (tx.adminNote) {
-      rowsHTML += `
-        <div class="detail-note">
-          <i class="fas fa-exclamation-triangle"></i>
-          سبب الرفض: ${tx.adminNote}
-        </div>
-      `;
-    }
-
-    if (tx.imageUrl) {
-      rowsHTML += `
-        <div class="detail-image">
-          <img src="${tx.imageUrl}" alt="صورة التحويل" loading="lazy" />
-        </div>
-      `;
-    }
-
-    txDetailBody.innerHTML = rowsHTML;
-    txDetailModal.classList.add('active');
-  }
-
-  closeTxDetail.addEventListener('click', () => txDetailModal.classList.remove('active'));
-  txDetailModal.addEventListener('click', (e) => {
-    if (e.target === txDetailModal) txDetailModal.classList.remove('active');
-  });
-
-  // ============================================================
-  //  ADMIN ACTIONS
-  // ============================================================
-  async function approveUser(uid) {
-    if (!confirm('هل أنت متأكد من قبول هذا المستخدم؟')) return;
-    try {
-      await update(ref(database, 'users/' + uid), { verificationStatus: 'approved' });
-      await remove(ref(database, 'pendingVerifications/' + uid));
-      showToast('✅ تم قبول المستخدم بنجاح!', 'success');
-    } catch (err) {
-      showToast('خطأ: ' + err.message, 'error');
-    }
-  }
-
-  async function rejectUser(uid) {
-    const reason = prompt('الرجاء كتابة سبب الرفض (سيظهر للمستخدم):');
-    if (reason === null) return;
-    if (!reason.trim()) {
-      showToast('⚠️ يجب كتابة سبب الرفض.', 'error');
-      return;
-    }
-    try {
-      await update(ref(database, 'users/' + uid), {
-        verificationStatus: 'rejected',
-        rejectionReason: reason.trim()
-      });
-      await remove(ref(database, 'pendingVerifications/' + uid));
-      showToast('❌ تم رفض المستخدم.', 'success');
-    } catch (err) {
-      showToast('خطأ: ' + err.message, 'error');
-    }
-  }
-
-  async function approveTransaction(uid, txId) {
-    if (!confirm('هل أنت متأكد من قبول هذه المعاملة؟')) return;
-    try {
-      const txSnap = await get(ref(database, 'transactions/' + uid + '/' + txId));
-      const txData = txSnap.val();
-      if (!txData) { showToast('المعاملة غير موجودة.', 'error'); return; }
-
-      if (txData.type === 'deposit') {
-        const userRef = ref(database, 'users/' + uid);
-        const userSnap = await get(userRef);
-        const userData = userSnap.val();
-        if (userData) {
-          const newBalance = (userData.balance || 0) + txData.netAmount;
-          await update(userRef, { balance: newBalance });
-        }
-      } else if (txData.type === 'withdraw') {
-        // Withdraw amount already deducted, no balance change needed
-      }
-
-      await update(ref(database, 'transactions/' + uid + '/' + txId), {
-        adminStatus: 'approved',
-        adminNote: null
-      });
-
-      showToast('✅ تم قبول المعاملة بنجاح!', 'success');
-    } catch (err) {
-      showToast('خطأ: ' + err.message, 'error');
-    }
-  }
-
-  async function rejectTransaction(uid, txId) {
-    const reason = prompt('الرجاء كتابة سبب الرفض (سيظهر للمستخدم):');
-    if (reason === null) return;
-    if (!reason.trim()) {
-      showToast('⚠️ يجب كتابة سبب الرفض.', 'error');
-      return;
-    }
-    try {
-      const txSnap = await get(ref(database, 'transactions/' + uid + '/' + txId));
-      const txData = txSnap.val();
-      if (!txData) { showToast('المعاملة غير موجودة.', 'error'); return; }
-
-      if (txData.type === 'withdraw') {
-        const userRef = ref(database, 'users/' + uid);
-        const userSnap = await get(userRef);
-        const userData = userSnap.val();
-        if (userData) {
-          const newBalance = (userData.balance || 0) + txData.amount;
-          await update(userRef, { balance: newBalance });
-        }
-      }
-
-      await update(ref(database, 'transactions/' + uid + '/' + txId), {
-        adminStatus: 'rejected',
-        adminNote: reason.trim()
-      });
-
-      showToast('❌ تم رفض المعاملة.', 'success');
-    } catch (err) {
-      showToast('خطأ: ' + err.message, 'error');
-    }
-  }
-
-  // ============================================================
-  //  ADMIN STATS
-  // ============================================================
-  function updateAdminStats() {
-    const users = Object.values(allUsers).filter(u => !isAdminEmail(u.email));
-    statUsers.textContent = users.length;
-
-    const totalBalance = users.reduce((sum, u) => sum + (u.balance || 0), 0);
-    statTotalBalance.textContent = formatCurrency(totalBalance);
-
-    let totalDeposits = 0, totalWithdrawals = 0;
-    Object.keys(allTransactionsData).forEach(uid => {
-      const txns = allTransactionsData[uid] || {};
-      Object.values(txns).forEach(tx => {
-        if (tx.adminStatus === 'approved') {
-          if (tx.type === 'deposit') totalDeposits += tx.amount || 0;
-          else if (tx.type === 'withdraw') totalWithdrawals += tx.amount || 0;
-        }
-      });
-    });
-    statDeposits.textContent = formatCurrency(totalDeposits);
-    statWithdrawals.textContent = formatCurrency(totalWithdrawals);
-
-    applyAdminFilter();
-  }
-
-  function applyAdminFilter() {
-    const month = filterMonth.value;
-    const year = filterYear.value;
-    let monthDep = 0, monthWith = 0;
-
-    Object.keys(allTransactionsData).forEach(uid => {
-      const txns = allTransactionsData[uid] || {};
-      Object.values(txns).forEach(tx => {
-        if (tx.adminStatus === 'approved') {
-          const date = new Date(tx.date);
-          const txMonth = String(date.getMonth() + 1).padStart(2, '0');
-          const txYear = String(date.getFullYear());
-          if (txMonth === month && txYear === year) {
-            if (tx.type === 'deposit') monthDep += tx.amount || 0;
-            else if (tx.type === 'withdraw') monthWith += tx.amount || 0;
-          }
-        }
-      });
-    });
-
-    monthDeposits.textContent = formatCurrency(monthDep);
-    monthWithdrawals.textContent = formatCurrency(monthWith);
-    monthNet.textContent = formatCurrency(monthDep - monthWith);
-  }
-
-  // ============================================================
-  //  ADMIN EDIT MODAL
-  // ============================================================
-  function openEditModal(uid, userData) {
-    editingUid = uid;
-    editFullName.value = userData.fullName || '';
-    editUsername.value = userData.username || '';
-    editEmail.value = userData.email || '';
-    editPhone.value = userData.phone || '';
-    editAddress.value = userData.address || '';
-    editBalance.value = userData.balance || 0;
-    editVerificationStatus.value = userData.verificationStatus || 'pending';
-    editModal.classList.add('active');
-  }
-
-  function closeEditModal() {
-    editingUid = null;
-    editModal.classList.remove('active');
-  }
-
-  cancelEditBtn.addEventListener('click', closeEditModal);
-  editModal.addEventListener('click', (e) => {
-    if (e.target === editModal) closeEditModal();
-  });
-
-  saveEditBtn.addEventListener('click', async () => {
-    if (!editingUid) return;
-    const data = {
-      fullName: editFullName.value.trim(),
-      username: editUsername.value.trim(),
-      email: editEmail.value.trim(),
-      phone: editPhone.value.trim(),
-      address: editAddress.value.trim(),
-      balance: parseFloat(editBalance.value) || 0,
-      verificationStatus: editVerificationStatus.value
-    };
-    if (!data.fullName || !data.username || !data.email || !data.phone) {
-      showToast('⚠️ يرجى ملء جميع الحقول الأساسية.', 'error');
-      return;
-    }
-    try {
-      await update(ref(database, 'users/' + editingUid), data);
-      showToast('✅ تم تحديث بيانات المستخدم بنجاح!', 'success');
-      closeEditModal();
-    } catch (err) {
-      showToast('فشل التحديث: ' + err.message, 'error');
-    }
-  });
-
-  // ============================================================
-  //  SEARCH & FILTER
-  // ============================================================
-  adminSearchBtn.addEventListener('click', () => renderAdminUsers(adminSearchInput.value));
-  adminSearchInput.addEventListener('keypress', (e) => {
-    if (e.key === 'Enter') renderAdminUsers(adminSearchInput.value);
-  });
-
-  applyFilterBtn.addEventListener('click', applyAdminFilter);
-
-  // Transaction search
-  function applyTxFilter() {
-    txFilter.text = txSearchText.value;
-    txFilter.date = txSearchDate.value;
-    renderAdminTransactions();
-  }
-
-  txSearchText.addEventListener('input', applyTxFilter);
-  txSearchDate.addEventListener('change', applyTxFilter);
-  clearTxFilterBtn.addEventListener('click', () => {
-    txSearchText.value = '';
-    txSearchDate.value = '';
-    txFilter = { text: '', date: '' };
-    renderAdminTransactions();
-  });
-
-  // ============================================================
-  //  AUTH STATE OBSERVER
-  // ============================================================
-  onAuthStateChanged(auth, (user) => {
-    if (user) {
-      const email = user.email || '';
-      isAdmin = isAdminEmail(email);
-      currentUser = user;
-
-      authSection.style.display = 'none';
-      appMain.classList.add('active');
-
-      if (isAdmin) {
-        userBadge.innerHTML = `<i class="fas fa-user-shield" style="color:#f5b041;"></i><span>مدير</span>`;
-        headerUsername.textContent = 'مدير';
-      } else {
-        userBadge.innerHTML = `<i class="fas fa-user-circle"></i><span id="headerUsername">مستخدم</span>`;
-      }
-
-      buildNavbar(isAdmin);
-
-      if (isAdmin) {
-        loadAdminData();
-        document.querySelector('.bottom-nav').style.display = 'flex';
-        navigateTo('pageAdminHome');
-      } else {
-        loadUserData(user.uid);
-        document.querySelector('.bottom-nav').style.display = 'flex';
-        setTimeout(() => {
-          if (currentUserData) {
-            const status = currentUserData.verificationStatus;
-            if (status === 'pending' && currentUserData.paymentMethod) {
-              navigateTo('pagePending');
-            } else if (status === 'rejected') {
-              navigateTo('pageCompletion');
-            } else {
-              navigateTo('pageHome');
+    // ===== كتابة نص الروبوت بشكل مطبعي =====
+    function typeRobotMessage(html, hint) {
+        const msgEl = document.getElementById('robotMessage');
+        const hintEl = document.getElementById('robotHint');
+        if (!msgEl) return;
+
+        if (typingTimer) { clearInterval(typingTimer); typingTimer = null; }
+
+        const tempDiv = document.createElement('div');
+        tempDiv.innerHTML = html;
+        const fullText = tempDiv.textContent || '';
+
+        msgEl.innerHTML = '<span class="robot-cursor"></span>';
+        if (hintEl) hintEl.innerHTML = '';
+
+        let i = 0;
+        typingTimer = setInterval(() => {
+            i++;
+            const partial = fullText.substring(0, i);
+            msgEl.innerHTML = partial + '<span class="robot-cursor"></span>';
+            if (i >= fullText.length) {
+                clearInterval(typingTimer);
+                typingTimer = null;
+                msgEl.innerHTML = html;
+                if (hintEl && hint !== undefined) hintEl.innerHTML = hint;
             }
-          } else {
-            navigateTo('pageHome');
-          }
-        }, 500);
-      }
-
-    } else {
-      currentUser = null;
-      currentUserData = null;
-      isAdmin = false;
-      authSection.style.display = 'flex';
-      appMain.classList.remove('active');
-      document.querySelectorAll('input').forEach(inp => inp.value = '');
-      document.querySelector('.bottom-nav').style.display = 'flex';
-      clearToast();
-      bottomNav.innerHTML = '';
+        }, 22);
     }
-  });
 
-  // ============================================================
-  //  INIT
-  // ============================================================
-  authSection.style.display = 'flex';
-  appMain.classList.remove('active');
-  document.querySelector('.bottom-nav').style.display = 'flex';
-  console.log('✅ GOOSIQ WALLET - يعمل بكامل الوظائف!');
+    function getRegionCount(regionName) {
+        return (allData[regionName] || []).length;
+    }
+
+    function renderRobotRegions() {
+        const container = document.getElementById('robotRegions');
+        if (!container) return;
+        container.innerHTML = '';
+
+        regions.forEach(region => {
+            const count = getRegionCount(region.name);
+            const card = document.createElement('div');
+            card.className = 'robot-region-card' + (selectedRegion === region.name ? ' selected' : '');
+            card.dataset.region = region.name;
+            card.innerHTML = `
+                <span class="rr-icon">${region.icon}</span>
+                <span class="rr-name">${region.name}</span>
+                <span class="rr-badge">${count} وضعية</span>
+            `;
+            card.onclick = () => selectRegionFromRobot(region.name, card);
+            container.appendChild(card);
+        });
+    }
+
+    // فتح الروبوت: الضغط على الأفاتار يعرض السؤال ثم المناطق وينطق العبارة
+    function openRobot() {
+        robotOpened = true;
+        const regionsEl = document.getElementById('robotRegions');
+        const backContainer = document.getElementById('robotBackContainer');
+
+        // إخفاء الوضعيات والتفاصيل عند فتح الروبوت
+        document.getElementById('positionList').style.display = 'none';
+        document.getElementById('detailBox').style.display = 'none';
+        selectedRegion = null;
+        if (backContainer) backContainer.innerHTML = '';
+
+        renderRobotRegions();
+        regionsEl.style.display = 'grid';
+        regionsEl.style.animation = 'none';
+        void regionsEl.offsetWidth;
+        regionsEl.style.animation = 'fadeUp 0.5s ease';
+
+        const questionText = 'أهلاً بك! <strong>أنا مساعدك الشعاعي</strong> 🤖<br>ما المنطقة التي تريد أن تشاهد وضعيات التصوير الشعاعي الخاصة بها؟';
+
+        typeRobotMessage(
+            questionText,
+            '💡 اختر إحدى المناطق بالأسفل'
+        );
+
+        // نطق العبارة عند الضغط على الروبوت
+        speakRobot('أهلاً بك، أنا مساعدك الشعاعي، ما المنطقة التي تريد أن تشاهد وضعيات التصوير الشعاعي الخاصة بها؟');
+    }
+
+    function selectRegionFromRobot(regionName, cardElement) {
+        document.querySelectorAll('.robot-region-card').forEach(c => c.classList.remove('selected'));
+        if (cardElement) cardElement.classList.add('selected');
+
+        const count = getRegionCount(regionName);
+        typeRobotMessage(
+            `ممتاز! اخترت <strong>${regionName}</strong> 🎯<br>عدد الوضعيات المتاحة: <strong>${count}</strong>`,
+            '💡 اضغط على أي وضعية بالأسفل لعرض تفاصيلها'
+        );
+
+        const backContainer = document.getElementById('robotBackContainer');
+        if (backContainer) {
+            backContainer.innerHTML = '';
+            const backBtn = document.createElement('button');
+            backBtn.className = 'robot-back-btn';
+            backBtn.innerHTML = '<i class="fas fa-arrow-right"></i> تغيير المنطقة';
+            backBtn.onclick = () => resetRobotSelection();
+            backContainer.appendChild(backBtn);
+        }
+
+        selectedRegion = regionName;
+        document.getElementById('detailBox').style.display = 'none';
+
+        const positionList = document.getElementById('positionList');
+        positionList.style.display = 'block';
+        document.getElementById('regionTitle').textContent = `وضعيات ${regionName}`;
+        const positions = allData[regionName] || [];
+        document.getElementById('positionCount').textContent = positions.length;
+
+        const positionsContainer = document.getElementById('positionsContainer');
+        positionsContainer.innerHTML = '';
+        if (positions.length === 0) {
+            positionsContainer.innerHTML = '<p class="no-data">لا توجد وضعيات متاحة لهذه المنطقة حالياً.</p>';
+        } else {
+            positions.forEach((pos, index) => {
+                const div = document.createElement('div');
+                div.className = 'position-item';
+                div.innerHTML = `
+                    <span class="pos-icon"><i class="fas fa-x-ray"></i></span>
+                    <span class="pos-name">${pos.name || 'وضعية ' + (index + 1)}</span>
+                `;
+                div.onclick = () => {
+                    document.querySelectorAll('.position-item').forEach(p => p.classList.remove('active'));
+                    div.classList.add('active');
+                    showDetail(pos);
+                };
+                positionsContainer.appendChild(div);
+            });
+        }
+
+        positionList.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+
+    function resetRobotSelection() {
+        selectedRegion = null;
+        document.querySelectorAll('.robot-region-card').forEach(c => c.classList.remove('selected'));
+        const backContainer = document.getElementById('robotBackContainer');
+        if (backContainer) backContainer.innerHTML = '';
+        document.getElementById('positionList').style.display = 'none';
+        document.getElementById('detailBox').style.display = 'none';
+        renderRobotRegions();
+        typeRobotMessage(
+            'ما المنطقة التي تريد أن تشاهد وضعيات التصوير الشعاعي الخاصة بها؟',
+            '💡 اختر إحدى المناطق بالأسفل'
+        );
+    }
+
+    window.selectRegionFromRobot = selectRegionFromRobot;
+    window.resetRobotSelection = resetRobotSelection;
+
+    function showDetail(pos) {
+        document.getElementById('detailBox').style.display = 'block';
+        document.getElementById('detailTitle').textContent = pos.name || '';
+        document.getElementById('detailBadge').textContent = pos.region || '';
+
+        const realImgUrl = getR2Url(pos.realImg);
+        const xrayImgUrl = getR2Url(pos.xrayImg);
+        const fallback = 'data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22200%22 height=%22200%22%3E%3Crect fill=%22%23181818%22 width=%22200%22 height=%22200%22/%3E%3Ctext x=%2250%25%22 y=%2250%25%22 text-anchor=%22middle%22 dy=%22.3em%22 fill=%22%23666%22 font-size=%2216%22%3Eلا توجد صورة%3C/text%3E%3C/svg%3E';
+
+        document.getElementById('detailImages').innerHTML = `
+            <figure>
+                <div class="watermark-container" onclick="openImageLightbox('${realImgUrl}', 'صورة حقيقية - ${pos.name || ''}')">
+                    <img src="${realImgUrl}" alt="صورة حقيقية" class="protected-image" onerror="this.src='${fallback}'">
+                </div>
+                <figcaption>صورة حقيقية (اضغط للتكبير)</figcaption>
+            </figure>
+            <figure>
+                <div class="watermark-container" onclick="openImageLightbox('${xrayImgUrl}', 'صورة شعاعية - ${pos.name || ''}')">
+                    <img src="${xrayImgUrl}" alt="صورة شعاعية" class="protected-image" onerror="this.src='${fallback}'">
+                </div>
+                <figcaption>صورة شعاعية (اضغط للتكبير)</figcaption>
+            </figure>
+        `;
+
+        document.getElementById('detailInfo').innerHTML = `
+            <div><strong>KVP</strong><span>${pos.kvp || '—'}</span></div>
+            <div><strong>MAS</strong><span>${pos.mas || '—'}</span></div>
+            <div><strong>سنتر</strong><span>${pos.center || '—'}</span></div>
+        `;
+        document.getElementById('detailPurpose').innerHTML = `<h4><i class="fas fa-bullseye"></i> الغرض</h4><p>${pos.purpose || '—'}</p>`;
+
+        document.getElementById('detailBox').scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+
+    function updateQuizRegionSelect() {
+        const select = document.getElementById('quizRegionSelect');
+        if (!select) return;
+        const currentVal = select.value;
+        select.innerHTML = '<option value="">-- اختر المنطقة --</option>';
+        Object.keys(allData).filter(reg => allData[reg] && allData[reg].length > 0).forEach(reg => {
+            const option = document.createElement('option');
+            option.value = reg;
+            option.textContent = reg;
+            select.appendChild(option);
+        });
+        if (currentVal && allData[currentVal]) select.value = currentVal;
+    }
+
+    function shuffleArray(arr) {
+        const a = [...arr];
+        for (let i = a.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [a[i], a[j]] = [a[j], a[i]];
+        }
+        return a;
+    }
+
+    function startQuiz(region) {
+        const positions = allData[region] || [];
+        if (positions.length < 1) return;
+
+        const allPositionNames = [];
+        Object.keys(allData).forEach(reg => {
+            allData[reg].forEach(pos => { if (pos.name) allPositionNames.push(pos.name); });
+        });
+
+        const allQuestions = [];
+        positions.forEach(pos => {
+            if (pos.realImg) {
+                const wrongChoices = shuffleArray(allPositionNames.filter(name => name !== pos.name)).slice(0, 3);
+                allQuestions.push({
+                    imageSrc: getR2Url(pos.realImg),
+                    correctAnswer: pos.name,
+                    choices: shuffleArray([pos.name, ...wrongChoices]),
+                    questionId: pos.id + '_real'
+                });
+            }
+            if (pos.xrayImg) {
+                const wrongChoices = shuffleArray(allPositionNames.filter(name => name !== pos.name)).slice(0, 3);
+                allQuestions.push({
+                    imageSrc: getR2Url(pos.xrayImg),
+                    correctAnswer: pos.name,
+                    choices: shuffleArray([pos.name, ...wrongChoices]),
+                    questionId: pos.id + '_xray'
+                });
+            }
+        });
+
+        quizQuestions = shuffleArray(allQuestions);
+        currentQuestionIndex = 0;
+        correctCount = 0;
+        answered = false;
+        document.getElementById('quizScore').textContent = `0 / ${quizQuestions.length}`;
+        renderQuestion();
+    }
+
+    function renderQuestion() {
+        const content = document.getElementById('quizContent');
+        if (!content) return;
+
+        if (currentQuestionIndex >= quizQuestions.length) {
+            content.innerHTML = `
+                <div style="text-align:center; padding: 30px;">
+                    <i class="fas fa-trophy" style="font-size: 4rem; color: var(--gold);"></i>
+                    <h3 style="margin:14px 0; color:#fff;">انتهى الاختبار!</h3>
+                    <p style="color: var(--muted);">نتيجتك: ${correctCount} من ${quizQuestions.length}</p>
+                    <button class="quiz-next-btn" onclick="restartQuiz()">إعادة</button>
+                </div>`;
+            return;
+        }
+
+        const q = quizQuestions[currentQuestionIndex];
+        answered = false;
+
+        let html = `
+            <div class="quiz-question-area">
+                <p style="color: var(--muted); margin-bottom:14px;">السؤال ${currentQuestionIndex + 1} من ${quizQuestions.length}</p>
+                <div class="quiz-image-container">
+                    <div class="watermark-container" onclick="openImageLightbox('${q.imageSrc}', 'سؤال ${currentQuestionIndex + 1}')">
+                        <img src="${q.imageSrc}" alt="وضعية" class="protected-image">
+                    </div>
+                    <p style="margin-top: 6px; font-size: 0.85rem; color: var(--muted);">اضغط على الصورة للتكبير</p>
+                </div>
+                <div class="quiz-choices">`;
+
+        q.choices.forEach(choice => {
+            html += `<button class="quiz-choice-btn" data-choice="${choice}">${choice}</button>`;
+        });
+
+        html += `</div><div class="quiz-feedback" id="quizFeedback"></div></div>`;
+        content.innerHTML = html;
+
+        document.querySelectorAll('.quiz-choice-btn').forEach(btn => {
+            btn.onclick = function() {
+                if (answered) return;
+                answered = true;
+                const selected = this.dataset.choice;
+                const correct = q.correctAnswer;
+
+                document.querySelectorAll('.quiz-choice-btn').forEach(b => b.disabled = true);
+
+                const questionId = q.questionId;
+                const isAlreadyAnswered = userQuizProgress[questionId] !== undefined;
+
+                let pointsDelta = 0;
+                let message = '';
+
+                if (selected === correct) {
+                    this.classList.add('correct');
+                    correctCount++;
+                    if (!isAlreadyAnswered) {
+                        pointsDelta = 1;
+                        message = '<span style="color:#27ae60;">✅ صحيح! +1 نقطة</span>';
+                    } else {
+                        message = '<span style="color:#27ae60;">✅ صحيح! (تم احتساب النقاط مسبقًا)</span>';
+                    }
+                } else {
+                    this.classList.add('wrong');
+                    document.querySelectorAll('.quiz-choice-btn').forEach(b => {
+                        if (b.dataset.choice === correct) b.classList.add('correct');
+                    });
+                    if (!isAlreadyAnswered) {
+                        pointsDelta = -1;
+                        message = `<span style="color:#e74c3c;">❌ خطأ. الصحيح: ${correct} -1 نقطة</span>`;
+                    } else {
+                        message = `<span style="color:#e74c3c;">❌ خطأ. الصحيح: ${correct} (تم احتساب النقاط مسبقًا)</span>`;
+                    }
+                }
+
+                document.getElementById('quizFeedback').innerHTML = message;
+
+                if (currentUser && !isAlreadyAnswered) {
+                    const userRef = ref(db, 'users/' + currentUser.uid);
+                    get(userRef).then((snapshot) => {
+                        const currentPoints = snapshot.exists() ? (snapshot.val().points || 0) : 0;
+                        const newPoints = currentPoints + pointsDelta;
+                        update(userRef, {
+                            points: newPoints,
+                            [`quizProgress/${questionId}`]: pointsDelta
+                        }).then(() => {
+                            userQuizProgress[questionId] = pointsDelta;
+                        }).catch(error => console.error('Error updating points:', error));
+
+                        update(ref(db, 'leaderboard/' + currentUser.uid), { points: newPoints })
+                            .catch(error => console.error('Error updating leaderboard:', error));
+                    }).catch(error => console.error('Error fetching user data:', error));
+                }
+
+                document.getElementById('quizScore').textContent = `${correctCount} / ${quizQuestions.length}`;
+
+                const nextBtn = document.createElement('button');
+                nextBtn.className = 'quiz-next-btn';
+                nextBtn.innerHTML = 'التالي <i class="fas fa-arrow-left"></i>';
+                nextBtn.onclick = () => { currentQuestionIndex++; renderQuestion(); };
+                document.getElementById('quizFeedback').appendChild(document.createElement('br'));
+                document.getElementById('quizFeedback').appendChild(nextBtn);
+            };
+        });
+    }
+
+    window.restartQuiz = function() {
+        const region = document.getElementById('quizRegionSelect').value;
+        if (region) startQuiz(region);
+    };
+
+    document.getElementById('searchInput').oninput = function(e) {
+        const query = e.target.value.toLowerCase().trim();
+        const regionsEl = document.getElementById('robotRegions');
+        // البحث يفتح شبكة المناطق إن لم تكن مفتوحة
+        if (query && regionsEl.style.display === 'none') {
+            openRobot();
+        }
+        document.querySelectorAll('.robot-region-card').forEach(card => {
+            const name = (card.dataset.region || '').toLowerCase();
+            card.style.display = name.includes(query) ? 'block' : 'none';
+        });
+    };
+
+    document.getElementById('startQuizBtn').onclick = function() {
+        const section = document.getElementById('quizSection');
+        section.classList.toggle('show');
+        if (section.classList.contains('show')) {
+            updateQuizRegionSelect();
+            section.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+    };
+
+    document.getElementById('quizRegionSelect').onchange = function() {
+        if (this.value) startQuiz(this.value);
+    };
+
+    // الضغط على الروبوت يفتح السؤال وينطق العبارة
+    document.getElementById('robotAvatar').addEventListener('click', function() {
+        openRobot();
+    });
+
+    // مراقبة حالة المستخدم - بدون شاشة تسجيل دخول وبدون عرض بريد أو نقاط
+    onAuthStateChanged(auth, (user) => {
+        currentUser = user;
+        if (user) {
+            onValue(ref(db, 'users/' + user.uid), (snapshot) => {
+                const data = snapshot.val();
+                if (data) {
+                    userQuizProgress = data.quizProgress || {};
+                }
+            });
+        } else {
+            userQuizProgress = {};
+        }
+    });
+
+    // تحميل البيانات
+    onValue(ref(db, 'positions'), (snapshot) => {
+        const data = snapshot.val();
+        if (data) {
+            allData = {};
+            Object.keys(data).forEach(key => {
+                const item = data[key];
+                const region = item.region || 'OTHER';
+                if (!allData[region]) allData[region] = [];
+                allData[region].push({ id: key, ...item });
+            });
+        }
+        // تحديث عدّادات المناطق في الروبوت
+        renderRobotRegions();
+        updateQuizRegionSelect();
+        // رسالة ترحيب أولية في فقاعة الروبوت
+        if (!robotOpened) {
+            typeRobotMessage(
+                'مرحباً بك! <strong>أنا مساعدك الشعاعي</strong> 🤖<br>اضغط عليّ لبدء اختيار المنطقة.',
+                '💡 أو استخدم مربع البحث بالأعلى'
+            );
+        }
+    }, (error) => {
+        console.error('Error loading positions:', error);
+        renderRobotRegions();
+        if (!robotOpened) {
+            typeRobotMessage(
+                'مرحباً بك! <strong>أنا مساعدك الشعاعي</strong> 🤖<br>اضغط عليّ لبدء اختيار المنطقة.',
+                '💡 أو استخدم مربع البحث بالأعلى'
+            );
+        }
+    });
+
+    // التهيئة الأولية
+    renderRobotRegions();
+    typeRobotMessage(
+        'مرحباً بك! <strong>أنا مساعدك الشعاعي</strong> 🤖<br>اضغط عليّ لبدء اختيار المنطقة.',
+        '💡 أو استخدم مربع البحث بالأعلى'
+    );
+    document.body.style.overflow = 'auto';
 </script>
+
 </body>
 </html>
